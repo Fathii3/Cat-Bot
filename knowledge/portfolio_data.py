@@ -55,29 +55,29 @@ Lainnya: Canva, Microsoft Word, Microsoft Excel, Roblox Studio
    - Fitur Utama: Pelaporan titik genangan real-time, pemetaan waktu nyata, geofencing alarm peringatan dini otomatis, kontak darurat & lokasi evakuasi.
    - Repository: Private
 
-4. Dapur Ode (Juni 2026)
+4. Dapur Ode (Juni 2026) ★ Featured
    - Deskripsi: Website pemesanan menu makanan tanpa framework tambahan.
    - Tech: HTML, CSS, PHP, PHPMailer, OpenRouteService, MySQL, PDO
    - Fitur Utama: Ongkos kirim otomatis berdasarkan jarak, pemantauan pesanan real-time, laporan keuangan bulanan.
    - Demo: https://dapur-ode.free.nf
 
-5. SecuScan (Juni 2026)
+5. SecuScan (Juni 2026) ★ Featured
    - Deskripsi: Aplikasi validasi tiket QR Code dengan enkripsi AES-256-CBC.
    - Tech: Flutter, Dart, Firestore, AES-256 Encryption
    - Fitur Utama: Pemindaian QR tiket terenkripsi, validasi status Firestore real-time, rotasi kunci enkripsi admin.
 
-6. Polynomial Field Calculator (Mei 2026)
+6. Polynomial Field Calculator (Mei 2026) ★ Featured
    - Deskripsi: Alat bantu pembelajaran interaktif aritmatika polinomial di Galois Field GF(p) dan GF(p^n).
    - Tech: Python3, HTML5, CSS3, Vanilla JavaScript, Flask
    - GitHub: https://github.com/Fathii3/Polynomial-Field-Calculator.git
 
-7. Wi-Fi Connect & Network Monitoring System (Juli 2026)
+7. Wi-Fi Connect & Network Monitoring System (Juli 2026) ★ Featured
    - Deskripsi: Portal tamu Wi-Fi modern dan pemantauan jaringan lokal dengan Neumorphism UI.
    - Tech: HTML5, JavaScript, Tailwind CSS, Node.js, Express.js, Puppeteer, Vercel Serverless, Ngrok Tunnel, QRCode.js
    - Demo: https://wifi-rumah.vercel.app
    - GitHub: https://github.com/Fathii3/Wifi-Rumah.git
 
-8. fets - Platform Source Code & Template Web (Agustus 2026)
+8. fets - Platform Source Code & Template Web (Agustus 2026) ★ Featured
    - Deskripsi: Toko digital statis ultra-cepat untuk katalog source code dan template web.
    - Tech: HTML5, Tailwind CSS v3, JavaScript, Firebase Firestore REST API, Firebase Auth Google OAuth, WhatsApp API, Vercel CDN
    - Fitur Utama: Zero-SDK Read Strategy, checkout WhatsApp instan, Google OAuth on-demand, Dark Mode.
