@@ -1,107 +1,174 @@
 import streamlit as st
-from streamlit_local_storage import LocalStorage
-from google import genai
-from google.genai import types
-import json
 from knowledge.portfolio_data import PORTFOLIO_CONTEXT
+from styles import apply_custom_css
+from components import (
+    ICON,
+    show_skeleton,
+    show_callout,
+    render_sidebar_brand,
+    render_top_navbar,
+    render_quick_pills,
+)
+from utils import (
+    DEFAULT_MESSAGES,
+    init_session_state,
+    get_active_session,
+    get_active_messages,
+    set_active_messages,
+    generate_title,
+    create_new_session,
+    delete_session,
+    load_gemini_keys,
+    init_gemini_state,
+    generate_fetty_response,
+)
 
-# 1. Konfigurasi Halaman & Styling
-st.set_page_config(page_title="Neko Assistant", page_icon="🐱", layout="centered")
+# konfigurasi halaman & avatar
+fetty_AVATAR = "assets/fetty_avatar.svg"
+USER_AVATAR = "assets/user_avatar.svg"
 
-st.markdown("""
-<style>
-    #MainMenu, header, footer {visibility: hidden;}
-    .block-container {padding-top: 1rem; padding-bottom: 2rem; padding-left: 1rem; padding-right: 1rem;}
-    .stChatMessage {border-radius: 12px; margin-bottom: 6px;}
-</style>
-""", unsafe_allow_html=True)
+st.set_page_config(
+    page_title="fetty Assistant",
+    page_icon=fetty_AVATAR,
+    layout="centered",
+    initial_sidebar_state="expanded"
+)
 
-# 2. Inisialisasi Gemini Client
-GEMINI_KEY = st.secrets.get("GEMINI_API_KEY")
-if not GEMINI_KEY:
-    st.error("API Key Gemini belum diatur di secrets.")
+# tema & gaya
+apply_custom_css()
+
+# inisialisasi state
+api_keys = load_gemini_keys()
+if not api_keys:
+    st.error("API key Gemini belum diatur di .streamlit/secrets.toml")
     st.stop()
 
-if "client" not in st.session_state:
-    st.session_state.client = genai.Client(api_key=GEMINI_KEY)
+init_gemini_state(api_keys)
+init_session_state()
 
-# 3. Inisialisasi LocalStorage
-ls = LocalStorage()
+# sidebar & riwayat chat
+with st.sidebar:
+    render_sidebar_brand()
 
-# 4. Load chat history dari localStorage browser
-DEFAULT_MESSAGES = [
-    {"role": "assistant", "content": "Halo meow! 🐾 Aku Neko, asisten Fathi Fadhil. Mau tanya seputar proyek Flutter, Full Stack, atau keahlian Fathi?"}
-]
-
-if "messages" not in st.session_state:
-    saved = ls.getItem("neko_chat_history")
-    if saved:
-        try:
-            st.session_state.messages = json.loads(saved) if isinstance(saved, str) else saved
-        except Exception:
-            st.session_state.messages = DEFAULT_MESSAGES
-    else:
-        st.session_state.messages = DEFAULT_MESSAGES
-
-# 5. Tombol Clear Chat
-col1, col2 = st.columns([8, 2])
-with col2:
-    if st.button("🗑️", help="Hapus riwayat chat", use_container_width=True):
-        st.session_state.messages = DEFAULT_MESSAGES
-        ls.deleteItem("neko_chat_history")
+    if st.button("Chat Baru", icon=":material/add:", use_container_width=True, type="primary"):
+        create_new_session()
+        st.toast("Chat baru siap!", icon=":material/check_circle:")
         st.rerun()
 
-# 6. Render Riwayat Chat
-for msg in st.session_state.messages:
-    avatar = "🐱" if msg["role"] == "assistant" else "👤"
+    st.markdown('<div class="sidebar-section-title">Riwayat Percakapan</div>', unsafe_allow_html=True)
+
+    session_ids = list(reversed(st.session_state.sessions.keys()))
+    total_sessions = len(session_ids)
+
+    for sid in session_ids:
+        session = st.session_state.sessions[sid]
+        is_active = sid == st.session_state.active_session
+        title = session["title"]
+        created = session["created"]
+        session_icon = ":material/radio_button_checked:" if is_active else ":material/chat_bubble:"
+
+        col_btn, col_del = st.columns([5, 1], vertical_alignment="center")
+
+        with col_btn:
+            if st.button(
+                title,
+                icon=session_icon,
+                key=f"session_{sid}",
+                use_container_width=True,
+                disabled=is_active,
+                help=f"Percakapan: {title} ({created})"
+            ):
+                st.session_state.active_session = sid
+                st.toast(f"Pindah ke: {title}", icon=":material/folder_open:")
+                st.rerun()
+
+        with col_del:
+            if total_sessions > 1:
+                if st.button("", icon=":material/delete:", key=f"del_{sid}", help="Hapus chat ini", use_container_width=True):
+                    deleted_title = delete_session(sid)
+                    st.toast(f"Chat \"{deleted_title}\" dihapus", icon=":material/delete:")
+                    st.rerun()
+
+    st.markdown(f"""
+    <div class="sidebar-footer">
+        <span>{ICON["chart"]} {total_sessions} chat tersimpan</span>
+    </div>
+    """, unsafe_allow_html=True)
+
+# navbar chat aktif
+active_session = get_active_session()
+render_top_navbar(active_session)
+
+# bersihkan chat
+col_spacer, col_clear = st.columns([8, 2])
+with col_clear:
+    if st.button("Bersihkan Chat", icon=":material/delete_sweep:", key="clear_chat", use_container_width=True):
+        set_active_messages(list(DEFAULT_MESSAGES))
+        active_session["title"] = "Chat Baru"
+        st.toast("Chat berhasil dibersihkan", icon=":material/check_circle:")
+        st.rerun()
+
+# pesan sambutan
+has_user_msg = any(m["role"] == "user" for m in get_active_messages())
+if not has_user_msg:
+    show_callout(
+        "Mau tau soal proyek, tech stack, sertifikasi, atau pengalaman Fathi? Langsung ketik di bawah ya, Fetty siap bantu!",
+        type="tip",
+        title="Hai, selamat datang!"
+    )
+
+# riwayat pesan
+messages = get_active_messages()
+for msg in messages:
+    avatar = fetty_AVATAR if msg["role"] == "assistant" else USER_AVATAR
     with st.chat_message(msg["role"], avatar=avatar):
         st.markdown(msg["content"])
 
-# 7. Handle Input User
-user_input = st.chat_input("Tanya proyek atau keahlian Fathi...")
+# pintasan topik
+render_quick_pills()
 
-if user_input:
-    st.session_state.messages.append({"role": "user", "content": user_input})
-    with st.chat_message("user", avatar="👤"):
-        st.markdown(user_input)
+# input chat & respon ai
+user_input = st.chat_input("Ketik pertanyaan kamu di sini...")
+prompt_to_send = user_input or st.session_state.pop("pending_pill_prompt", None)
 
-    # Setup Prompt & Parameter Gemini
-    system_instruction = f"""
-Kamu adalah Neko, asisten AI kucing pintar untuk portofolio Fathi Fadhil (fathifadhil.me).
-Gunakan rujukan mutlak berikut:
-{PORTFOLIO_CONTEXT}
+if prompt_to_send:
+    messages.append({"role": "user", "content": prompt_to_send})
+    with st.chat_message("user", avatar=USER_AVATAR):
+        st.markdown(prompt_to_send)
 
-Aturan:
-- Ramah, solutif, sesekali gunakan gaya kucing (meow/🐾).
-- Jawab maksimal 3-4 kalimat singkat padat.
-- Hanya jawab seputar profil, keahlian, dan proyek Fathi. Tolak topik lain dengan sopan.
-"""
+    # buat judul dari pesan pertama
+    if active_session["title"] == "Chat Baru":
+        active_session["title"] = generate_title(messages)
 
-    chat_config = types.GenerateContentConfig(
-        system_instruction=system_instruction,
-        temperature=0.2,
-        top_p=0.95,
-        top_k=20
-    )
+    with st.chat_message("assistant", avatar=fetty_AVATAR):
+        skeleton_placeholder = st.empty()
+        with skeleton_placeholder:
+            show_skeleton()
 
-    with st.chat_message("assistant", avatar="🐱"):
-        with st.spinner("Neko sedang berpikir... 🐾"):
-            try:
-                history_text = "\n".join([f"{m['role']}: {m['content']}" for m in st.session_state.messages[-4:]])
-                prompt = f"RIWAYAT PERCAKAPAN:\n{history_text}\n\nPERTANYAAN USER:\n{user_input}"
+        reply, last_error = generate_fetty_response(
+            api_keys=api_keys,
+            messages=messages,
+            user_input=prompt_to_send,
+            portfolio_context=PORTFOLIO_CONTEXT
+        )
 
-                response = st.session_state.client.models.generate_content(
-                    model="gemini-2.5-flash",
-                    contents=prompt,
-                    config=chat_config
-                )
-                reply = response.text
-            except Exception as e:
-                reply = f"Maaf meow, terjadi kesalahan teknis: {e}"
+        skeleton_placeholder.empty()
+
+        if reply:
+            st.markdown(reply)
+        else:
+            err_msg = str(last_error) if last_error else ""
+            if "429" in err_msg or "RESOURCE_EXHAUSTED" in err_msg:
+                reply = "Maaf meow, kuota percakapan AI sedang penuh sementara waktu. Tunggu 10-30 detik lalu tanyakan lagi ya!"
+            else:
+                reply = "Waduh, koneksi ke server AI lagi terganggu nih meow~ Coba refresh halaman atau tanyakan lagi ya!"
 
             st.markdown(reply)
+            show_callout(
+                "Sistem AI sedang sibuk atau batas kuota harian tercapai. Silakan coba beberapa saat lagi.",
+                type="warning",
+                title="Layanan Sedang Sibuk"
+            )
+            st.toast("Gagal mendapatkan respons, coba lagi ya", icon=":material/warning:")
 
-    st.session_state.messages.append({"role": "assistant", "content": reply})
-
-    # Save ke localStorage browser setiap ada pesan baru
-    ls.setItem("neko_chat_history", json.dumps(st.session_state.messages, ensure_ascii=False))
+    messages.append({"role": "assistant", "content": reply})
