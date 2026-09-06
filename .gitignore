@@ -26,6 +26,10 @@ env/
 .DS_Store
 Thumbs.db
 
+# Data rate limit lokal
+data/
+
 # Dokumen lokal
 Streamlit_CatBubble_Architecture.md
+
 

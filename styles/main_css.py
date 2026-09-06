@@ -4,6 +4,74 @@ def apply_custom_css():
     """Gaya tampilan aplikasi."""
     st.markdown("""
 <style>
+    /* reset & kunci scroll iframe embed tanpa meruntuhkan tinggi (zero-height collapse) */
+    html, body, #root, .withScreencast {
+        width: 100% !important;
+        height: 100% !important;
+        min-height: 100% !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        overflow: hidden !important;
+        position: relative !important;
+        -webkit-text-size-adjust: 100% !important;
+        touch-action: pan-y !important;
+        overscroll-behavior: none !important;
+        overscroll-behavior-y: none !important;
+    }
+
+    /* .stApp & .stAppViewContainer mengunci viewport penuh tanpa kehilangan tinggi */
+    .stApp,
+    .stAppViewContainer {
+        position: fixed !important;
+        top: 0 !important;
+        left: 0 !important;
+        right: 0 !important;
+        bottom: 0 !important;
+        width: 100% !important;
+        height: 100% !important;
+        overflow: hidden !important;
+        overscroll-behavior: none !important;
+        overscroll-behavior-y: none !important;
+    }
+
+    /* section.main / [data-testid="stMain"] adalah SATU-SATUNYA wadah scroll (mulus tanpa getaran) */
+    section[data-testid="stAppScrollToBottomContainer"],
+    section[data-testid="stMain"],
+    section.main,
+    .stMain {
+        overflow-y: auto !important;
+        overflow-x: hidden !important;
+        -webkit-overflow-scrolling: touch !important;
+        overscroll-behavior: none !important;
+        overscroll-behavior-y: none !important;
+        scroll-behavior: auto !important;
+        overflow-anchor: none !important;
+        height: 100% !important;
+        width: 100% !important;
+        touch-action: pan-y !important;
+        position: relative !important;
+    }
+
+    /* sentuhan responsif tombol & elemen interaktif (tanpa delay 300ms) */
+    button, input, textarea, a, select,
+    [data-testid="stChatInput"],
+    [data-testid="stChatInputSubmitButton"],
+    [data-testid="stBaseButton-secondary"],
+    [data-testid="stBaseButton-primary"],
+    [data-testid="stDownloadButton"] button,
+    [data-testid="stButtonGroup"] button,
+    [data-testid="stPills"] button {
+        touch-action: manipulation !important;
+        pointer-events: auto !important;
+        -webkit-tap-highlight-color: transparent !important;
+    }
+
+    /* pastikan sidebar tetap dapat disentuh dan di-scroll */
+    section[data-testid="stSidebar"] {
+        pointer-events: auto !important;
+        z-index: 1000 !important;
+    }
+
     /* header & tombol sidebar */
     #MainMenu { display: none !important; }
     footer { display: none !important; }
@@ -16,6 +84,10 @@ def apply_custom_css():
         height: auto !important;
         z-index: 99 !important;
         padding: 4px 8px !important;
+        pointer-events: none !important;
+    }
+    header[data-testid="stHeader"] * {
+        pointer-events: auto !important;
     }
 
     [data-testid="stExpandSidebarButton"],
@@ -58,12 +130,13 @@ def apply_custom_css():
         color: #059669 !important;
     }
 
-    /* tata letak konten */
+    /* tata letak konten mode embed */
     .block-container {
         padding-top: 1rem !important;
-        padding-bottom: 2rem !important;
+        padding-bottom: 5.5rem !important;
         padding-left: 1rem !important;
         padding-right: 1rem !important;
+        max-width: 100% !important;
     }
 
     /* animasi */
@@ -247,77 +320,290 @@ def apply_custom_css():
         flex-direction: row !important;
         flex-wrap: nowrap !important;
         align-items: center !important;
+        justify-content: space-between !important;
         gap: 6px !important;
-        margin-bottom: 3px !important;
-    }
-    section[data-testid="stSidebar"] [data-testid="stHorizontalBlock"] > div:first-child,
-    section[data-testid="stSidebar"] [data-testid="stHorizontalBlock"] > [data-testid="stColumn"]:first-child {
-        flex: 1 1 auto !important;
+        margin-bottom: 4px !important;
+        width: 100% !important;
         min-width: 0 !important;
     }
-    section[data-testid="stSidebar"] [data-testid="stHorizontalBlock"] > div:last-child,
-    section[data-testid="stSidebar"] [data-testid="stHorizontalBlock"] > [data-testid="stColumn"]:last-child {
-        flex: 0 0 38px !important;
-        min-width: 38px !important;
-        max-width: 38px !important;
+
+    /* atasi paksa media query mobile streamlit agar kolom tidak menjadi 100% */
+    section[data-testid="stSidebar"] [data-testid="stHorizontalBlock"] [data-testid="stColumn"],
+    section[data-testid="stSidebar"] [data-testid="stHorizontalBlock"] > div {
+        min-width: 0 !important;
+        max-width: 100% !important;
+        box-sizing: border-box !important;
+    }
+
+    /* kolom 1: judul percakapan */
+    section[data-testid="stSidebar"] [data-testid="stHorizontalBlock"] > [data-testid="stColumn"]:first-child,
+    section[data-testid="stSidebar"] [data-testid="stHorizontalBlock"] > div:first-child {
+        flex: 1 1 auto !important;
+        width: auto !important;
+        min-width: 0 !important;
+    }
+
+    /* kolom 2 (unduh) & kolom 3 (hapus) */
+    section[data-testid="stSidebar"] [data-testid="stHorizontalBlock"] > [data-testid="stColumn"]:not(:first-child),
+    section[data-testid="stSidebar"] [data-testid="stHorizontalBlock"] > div:not(:first-child) {
+        flex: 0 0 36px !important;
+        width: 36px !important;
+        min-width: 36px !important;
+        max-width: 36px !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        overflow: hidden !important;
+    }
+
+    /* semua kontainer perantara di dalam kolom aksi */
+    section[data-testid="stSidebar"] [data-testid="stHorizontalBlock"] > [data-testid="stColumn"]:not(:first-child) [data-testid="stVerticalBlock"],
+    section[data-testid="stSidebar"] [data-testid="stHorizontalBlock"] > [data-testid="stColumn"]:not(:first-child) [data-testid="stElementContainer"],
+    section[data-testid="stSidebar"] [data-testid="stHorizontalBlock"] > [data-testid="stColumn"]:not(:first-child) [data-testid="stDownloadButton"] {
+        width: 36px !important;
+        min-width: 36px !important;
+        max-width: 36px !important;
+        height: 36px !important;
+        min-height: 36px !important;
+        max-height: 36px !important;
+        margin: 0 !important;
+        padding: 0 !important;
         display: flex !important;
         align-items: center !important;
         justify-content: center !important;
     }
 
-    /* tombol hapus sesi */
-    section[data-testid="stSidebar"] [data-testid="stHorizontalBlock"] > div:last-child button,
-    section[data-testid="stSidebar"] [data-testid="stHorizontalBlock"] > [data-testid="stColumn"]:last-child button,
-    section[data-testid="stSidebar"] button[key*="del_"] {
-        display: flex !important;
-        align-items: center !important;
-        justify-content: center !important;
+    /* gaya tombol aksi (unduh & hapus) di sidebar */
+    section[data-testid="stSidebar"] [data-testid="stHorizontalBlock"] > [data-testid="stColumn"]:not(:first-child) button {
         width: 36px !important;
         height: 36px !important;
+        min-width: 36px !important;
+        max-width: 36px !important;
         min-height: 36px !important;
         max-height: 36px !important;
         padding: 0 !important;
         margin: 0 !important;
-        border: 1px solid transparent !important;
-        background: transparent !important;
-        color: #94a3b8 !important;
-        font-size: 14px !important;
-        font-weight: 500 !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
         border-radius: 8px !important;
         cursor: pointer !important;
+        touch-action: manipulation !important;
+        pointer-events: auto !important;
         transition: all 0.2s cubic-bezier(0.22, 1, 0.36, 1) !important;
+        box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04) !important;
+        text-align: center !important;
+        box-sizing: border-box !important;
     }
-    section[data-testid="stSidebar"] [data-testid="stHorizontalBlock"] > div:last-child button:hover,
-    section[data-testid="stSidebar"] button[key*="del_"]:hover {
+
+    /* tombol unduh */
+    section[data-testid="stSidebar"] [data-testid="stDownloadButton"] button {
+        background: #ffffff !important;
+        border: 1px solid #e2e8f0 !important;
+        color: #64748b !important;
+    }
+    section[data-testid="stSidebar"] [data-testid="stDownloadButton"] button:hover {
+        background: #ecfdf5 !important;
+        border-color: #a7f3d0 !important;
+        color: #059669 !important;
+        transform: scale(1.06) !important;
+        box-shadow: 0 2px 6px rgba(5, 150, 105, 0.15) !important;
+    }
+    section[data-testid="stSidebar"] [data-testid="stDownloadButton"] button:active {
+        transform: scale(0.96) !important;
+        background: #d1fae5 !important;
+    }
+    section[data-testid="stSidebar"] [data-testid="stDownloadButton"] button span {
+        color: inherit !important;
+    }
+    section[data-testid="stSidebar"] [data-testid="stDownloadButton"] button:hover span {
+        color: #059669 !important;
+    }
+
+    /* tombol hapus */
+    section[data-testid="stSidebar"] [data-testid="stHorizontalBlock"] > [data-testid="stColumn"]:last-child button:not([data-testid="stDownloadButton"] button) {
+        background: #ffffff !important;
+        border: 1px solid #fee2e2 !important;
+        color: #94a3b8 !important;
+    }
+    section[data-testid="stSidebar"] [data-testid="stHorizontalBlock"] > [data-testid="stColumn"]:last-child button:not([data-testid="stDownloadButton"] button):hover {
         background: #fef2f2 !important;
         border-color: #fecaca !important;
         color: #ef4444 !important;
         transform: scale(1.06) !important;
         box-shadow: 0 2px 6px rgba(239, 68, 68, 0.15) !important;
     }
-    section[data-testid="stSidebar"] [data-testid="stHorizontalBlock"] > div:last-child button:active,
-    section[data-testid="stSidebar"] button[key*="del_"]:active {
+    section[data-testid="stSidebar"] [data-testid="stHorizontalBlock"] > [data-testid="stColumn"]:last-child button:not([data-testid="stDownloadButton"] button):active {
         transform: scale(0.96) !important;
         background: #fee2e2 !important;
     }
-    section[data-testid="stSidebar"] [data-testid="stHorizontalBlock"] > div:last-child button span,
-    section[data-testid="stSidebar"] button[key*="del_"] span {
+    section[data-testid="stSidebar"] [data-testid="stHorizontalBlock"] > [data-testid="stColumn"]:last-child button:not([data-testid="stDownloadButton"] button) span {
         color: inherit !important;
     }
-    section[data-testid="stSidebar"] [data-testid="stHorizontalBlock"] > div:last-child button:hover span,
-    section[data-testid="stSidebar"] button[key*="del_"]:hover span {
+    section[data-testid="stSidebar"] [data-testid="stHorizontalBlock"] > [data-testid="stColumn"]:last-child button:not([data-testid="stDownloadButton"] button):hover span {
         color: #ef4444 !important;
+    }
+
+    /* bersihkan teks kosong di tombol unduh & hapus */
+    section[data-testid="stSidebar"] [data-testid="stHorizontalBlock"] > [data-testid="stColumn"]:not(:first-child) button p {
+        display: none !important;
+        margin: 0 !important;
+        padding: 0 !important;
+    }
+    section[data-testid="stSidebar"] [data-testid="stHorizontalBlock"] > [data-testid="stColumn"]:not(:first-child) button [data-testid="stIconMaterial"] {
+        margin: 0 !important;
+        font-size: 18px !important;
     }
 
     /* tampilan mobile */
     @media (max-width: 768px) {
+        /* wadah konten utama selalu 100% penuh di mobile, tidak pernah terhimpit */
+        .stAppViewContainer,
+        .stAppViewContainer > div:last-child,
+        section[data-testid="stMain"],
+        section.main,
+        .stMain {
+            width: 100% !important;
+            min-width: 100% !important;
+            max-width: 100% !important;
+            flex: 1 1 100% !important;
+            left: 0 !important;
+        }
+
+        /* sidebar di mobile menjadi laci overlay (drawer) melayang di atas chat */
+        section[data-testid="stSidebar"] {
+            position: fixed !important;
+            top: 0 !important;
+            left: 0 !important;
+            bottom: 0 !important;
+            height: 100% !important;
+            max-height: 100% !important;
+            width: 84vw !important;
+            max-width: 320px !important;
+            min-width: 260px !important;
+            z-index: 999999 !important;
+            box-shadow: 4px 0 24px rgba(0, 0, 0, 0.25) !important;
+            transition: transform 0.28s cubic-bezier(0.22, 1, 0.36, 1) !important;
+        }
+
+        /* saat sidebar ditutup di mobile, sembunyikan di luar viewport */
+        section[data-testid="stSidebar"][aria-expanded="false"] {
+            transform: translateX(-110%) !important;
+            pointer-events: none !important;
+            visibility: hidden !important;
+        }
+
+        /* saat sidebar dibuka di mobile, tampil melayang penuh */
+        section[data-testid="stSidebar"][aria-expanded="true"] {
+            transform: translateX(0) !important;
+            pointer-events: auto !important;
+            visibility: visible !important;
+        }
+
+        /* navbar atas di mobile */
+        .top-navbar {
+            padding: 8px 12px !important;
+            gap: 8px !important;
+        }
+        .top-navbar .nav-left {
+            gap: 8px !important;
+            min-width: 0 !important;
+            flex: 1 1 auto !important;
+        }
+        .top-navbar .nav-title {
+            font-size: 13px !important;
+            overflow: hidden !important;
+            text-overflow: ellipsis !important;
+            white-space: nowrap !important;
+            max-width: 160px !important;
+        }
+        .top-navbar .nav-badge {
+            padding: 3px 8px !important;
+            font-size: 10.5px !important;
+            flex-shrink: 0 !important;
+        }
+
+        /* kunci paksa horizontal row di mobile */
         section[data-testid="stSidebar"] [data-testid="stHorizontalBlock"] {
+            display: flex !important;
             flex-direction: row !important;
             flex-wrap: nowrap !important;
+            align-items: center !important;
+            justify-content: space-between !important;
+            gap: 4px !important;
+            width: 100% !important;
+            min-width: 0 !important;
         }
-        section[data-testid="stSidebar"] [data-testid="stHorizontalBlock"] > div:last-child {
-            flex: 0 0 38px !important;
-            min-width: 38px !important;
+
+        /* matikan paksa min-width 100% mobile streamlit */
+        section[data-testid="stSidebar"] [data-testid="stHorizontalBlock"] [data-testid="stColumn"],
+        section[data-testid="stSidebar"] [data-testid="stHorizontalBlock"] > div {
+            min-width: 0 !important;
+            max-width: 100% !important;
+        }
+
+        /* kolom judul di mobile */
+        section[data-testid="stSidebar"] [data-testid="stHorizontalBlock"] > [data-testid="stColumn"]:first-child,
+        section[data-testid="stSidebar"] [data-testid="stHorizontalBlock"] > div:first-child {
+            flex: 1 1 auto !important;
+            width: auto !important;
+            min-width: 0 !important;
+        }
+
+        /* kolom aksi di mobile */
+        section[data-testid="stSidebar"] [data-testid="stHorizontalBlock"] > [data-testid="stColumn"]:not(:first-child),
+        section[data-testid="stSidebar"] [data-testid="stHorizontalBlock"] > div:not(:first-child) {
+            flex: 0 0 32px !important;
+            width: 32px !important;
+            min-width: 32px !important;
+            max-width: 32px !important;
+            display: flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+        }
+
+        section[data-testid="stSidebar"] [data-testid="stHorizontalBlock"] > [data-testid="stColumn"]:not(:first-child) [data-testid="stVerticalBlock"],
+        section[data-testid="stSidebar"] [data-testid="stHorizontalBlock"] > [data-testid="stColumn"]:not(:first-child) [data-testid="stElementContainer"],
+        section[data-testid="stSidebar"] [data-testid="stHorizontalBlock"] > [data-testid="stColumn"]:not(:first-child) [data-testid="stDownloadButton"],
+        section[data-testid="stSidebar"] [data-testid="stHorizontalBlock"] > [data-testid="stColumn"]:not(:first-child) button {
+            width: 32px !important;
+            height: 32px !important;
+            min-width: 32px !important;
+            max-width: 32px !important;
+            min-height: 32px !important;
+            max-height: 32px !important;
+            padding: 0 !important;
+        }
+
+        /* penyesuaian wadah chat input di mobile */
+        [data-testid="stBottom"] {
+            padding-left: 8px !important;
+            padding-right: 8px !important;
+            padding-bottom: 8px !important;
+            padding-top: 6px !important;
+        }
+        [data-testid="stChatInput"] {
+            padding: 3px 5px 3px 12px !important;
+        }
+
+        /* penyesuaian tombol kirim chat di mobile */
+        [data-testid="stChatInput"] button,
+        [data-testid="stChatInputSubmitButton"],
+        [data-testid="stChatInputStopButton"] {
+            width: 34px !important;
+            height: 34px !important;
+            min-width: 34px !important;
+            min-height: 34px !important;
+            max-width: 34px !important;
+            max-height: 34px !important;
+            flex-shrink: 0 !important;
+        }
+        [data-testid="stChatInput"] button svg,
+        [data-testid="stChatInputSubmitButton"] svg {
+            width: 18px !important;
+            height: 18px !important;
+            min-width: 18px !important;
+            min-height: 18px !important;
         }
     }
 
@@ -510,13 +796,53 @@ def apply_custom_css():
     }
     .callout-info .callout-icon { background: #e0f2fe; color: #0284c7; }
 
+    /* wadah chat input iframe embed dengan latar belakang blur frosted glass */
+    [data-testid="stBottom"] {
+        position: sticky !important;
+        bottom: 0 !important;
+        left: 0 !important;
+        right: 0 !important;
+        width: 100% !important;
+        z-index: 999 !important;
+        background: rgba(255, 255, 255, 0.85) !important;
+        backdrop-filter: blur(14px) saturate(180%) !important;
+        -webkit-backdrop-filter: blur(14px) saturate(180%) !important;
+        border-top: 1px solid rgba(226, 232, 240, 0.8) !important;
+        box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.03) !important;
+        padding-top: 8px !important;
+        padding-bottom: 10px !important;
+        padding-left: 14px !important;
+        padding-right: 14px !important;
+        pointer-events: auto !important;
+        box-sizing: border-box !important;
+        transform: translateZ(0) !important;
+        will-change: transform !important;
+    }
+    [data-testid="stBottom"] > div,
+    [data-testid="stBottomBlockContainer"] {
+        padding: 0 !important;
+        max-width: 100% !important;
+        width: 100% !important;
+        margin: 0 auto !important;
+        background: transparent !important;
+    }
+    [data-testid="stBottom"] > div,
+    [data-testid="stChatInput"],
+    [data-testid="stChatInput"] * {
+        pointer-events: auto !important;
+    }
+
     /* kolom input chat */
     [data-testid="stChatInput"] {
-        border-radius: 16px !important;
-        border: 1.5px solid #e5e7eb !important;
+        border-radius: 20px !important;
+        border: 1.5px solid #e2e8f0 !important;
         box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05) !important;
         transition: all 0.25s cubic-bezier(0.22, 1, 0.36, 1) !important;
         background: #ffffff !important;
+        padding: 4px 6px 4px 14px !important;
+        width: 100% !important;
+        max-width: 100% !important;
+        box-sizing: border-box !important;
     }
     [data-testid="stChatInput"]:focus-within {
         border-color: #059669 !important;
@@ -525,15 +851,134 @@ def apply_custom_css():
     [data-testid="stChatInput"] textarea {
         font-size: 14px !important;
         line-height: 1.5 !important;
+        color: #1e293b !important;
     }
-    [data-testid="stChatInput"] button {
-        border-radius: 10px !important;
-        color: #059669 !important;
+
+    /* sembunyikan instruksi internal atau elemen artefak visual */
+    [data-testid="stChatInput"] .stChatInputInstructions {
+        display: none !important;
+    }
+
+    /* tombol kirim pesan chat input (stChatInputSubmitButton) */
+    [data-testid="stChatInput"] button,
+    [data-testid="stChatInputSubmitButton"],
+    [data-testid="stChatInputStopButton"] {
+        width: 36px !important;
+        height: 36px !important;
+        min-width: 36px !important;
+        min-height: 36px !important;
+        max-width: 36px !important;
+        max-height: 36px !important;
+        border-radius: 50% !important;
+        padding: 0 !important;
+        margin: 0 !important;
+        display: inline-flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        border: none !important;
+        outline: none !important;
+        cursor: pointer !important;
+        touch-action: manipulation !important;
+        pointer-events: auto !important;
+        -webkit-tap-highlight-color: transparent !important;
+        transition: all 0.2s cubic-bezier(0.22, 1, 0.36, 1) !important;
+        box-sizing: border-box !important;
+        position: relative !important;
+    }
+
+    /* hilangkan artefak pseudo-element & outline fokus liar */
+    [data-testid="stChatInput"] button::before,
+    [data-testid="stChatInput"] button::after,
+    [data-testid="stChatInputSubmitButton"]::before,
+    [data-testid="stChatInputSubmitButton"]::after {
+        display: none !important;
+        content: none !important;
+    }
+    [data-testid="stChatInput"] button:focus,
+    [data-testid="stChatInput"] button:focus-visible,
+    [data-testid="stChatInputSubmitButton"]:focus,
+    [data-testid="stChatInputSubmitButton"]:focus-visible {
+        outline: none !important;
+        box-shadow: 0 0 0 2px rgba(5, 150, 105, 0.25) !important;
+    }
+
+    /* tombol kirim saat aktif (siap kirim pesan) */
+    [data-testid="stChatInput"] button:not(:disabled),
+    [data-testid="stChatInputSubmitButton"]:not(:disabled) {
+        background: linear-gradient(135deg, #059669 0%, #10b981 100%) !important;
+        color: #ffffff !important;
+        box-shadow: 0 2px 8px rgba(5, 150, 105, 0.35) !important;
+        cursor: pointer !important;
+        opacity: 1 !important;
+    }
+    [data-testid="stChatInput"] button:not(:disabled):hover,
+    [data-testid="stChatInputSubmitButton"]:not(:disabled):hover {
+        background: linear-gradient(135deg, #047857 0%, #059669 100%) !important;
+        transform: scale(1.08) !important;
+        box-shadow: 0 4px 14px rgba(5, 150, 105, 0.45) !important;
+    }
+    [data-testid="stChatInput"] button:not(:disabled):active,
+    [data-testid="stChatInputSubmitButton"]:not(:disabled):active {
+        transform: scale(0.95) !important;
+        background: #065f46 !important;
+    }
+
+    /* tombol kirim saat dinonaktifkan (belum ketik / kuota habis) */
+    [data-testid="stChatInput"] button:disabled,
+    [data-testid="stChatInputSubmitButton"]:disabled {
+        background: #f1f5f9 !important;
+        color: #94a3b8 !important;
+        border: 1px solid #e2e8f0 !important;
+        cursor: not-allowed !important;
+        opacity: 0.85 !important;
+        box-shadow: none !important;
+        transform: none !important;
+    }
+
+    /* tombol stop respon ai jika muncul */
+    [data-testid="stChatInputStopButton"] {
+        background: #fee2e2 !important;
+        color: #ef4444 !important;
+        border: 1px solid #fecaca !important;
+    }
+    [data-testid="stChatInputStopButton"]:hover {
+        background: #fecaca !important;
+        color: #dc2626 !important;
+        transform: scale(1.08) !important;
+    }
+
+    /* ikon svg di dalam tombol kirim pesan */
+    [data-testid="stChatInput"] button span,
+    [data-testid="stChatInputSubmitButton"] span {
+        display: inline-flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        color: inherit !important;
+    }
+    [data-testid="stChatInput"] button svg,
+    [data-testid="stChatInputSubmitButton"] svg {
+        width: 20px !important;
+        height: 20px !important;
+        min-width: 20px !important;
+        min-height: 20px !important;
+        display: block !important;
+        margin: auto !important;
+        color: inherit !important;
+        fill: currentColor !important;
         transition: all 0.2s ease !important;
     }
-    [data-testid="stChatInput"] button:hover {
-        background: #ecfdf5 !important;
-        transform: scale(1.08) !important;
+    [data-testid="stChatInput"] button svg path[fill="none"],
+    [data-testid="stChatInputSubmitButton"] svg path[fill="none"] {
+        fill: none !important;
+    }
+    [data-testid="stChatInput"] button svg path:not([fill="none"]),
+    [data-testid="stChatInputSubmitButton"] svg path:not([fill="none"]) {
+        fill: currentColor !important;
+    }
+    [data-testid="stChatInput"] button [data-testid="stIconMaterial"],
+    [data-testid="stChatInputSubmitButton"] [data-testid="stIconMaterial"] {
+        color: inherit !important;
+        font-size: 20px !important;
     }
 
     /* tombol aksi */

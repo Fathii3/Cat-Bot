@@ -9,7 +9,7 @@ DEFAULT_MESSAGES = [
 ]
 
 def init_session_state():
-    """Inisialisasi riwayat chat."""
+    """inisialisasi riwayat chat di memori sesi."""
     if "sessions" not in st.session_state:
         first_id = "chat_1"
         st.session_state.sessions = {
@@ -23,19 +23,19 @@ def init_session_state():
         st.session_state.session_counter = 1
 
 def get_active_session() -> dict:
-    """Ambil sesi chat aktif."""
+    """ambil sesi chat aktif."""
     return st.session_state.sessions[st.session_state.active_session]
 
 def get_active_messages() -> list:
-    """Ambil pesan dari sesi aktif."""
+    """ambil pesan dari sesi aktif."""
     return st.session_state.sessions[st.session_state.active_session]["messages"]
 
 def set_active_messages(msgs: list):
-    """Simpan pesan ke sesi aktif."""
+    """simpan pesan ke sesi aktif."""
     st.session_state.sessions[st.session_state.active_session]["messages"] = msgs
 
 def generate_title(messages: list) -> str:
-    """Buat judul dari pesan pertama."""
+    """buat judul dari pesan pertama."""
     for msg in messages:
         if msg["role"] == "user":
             text = msg["content"].strip()
@@ -43,7 +43,7 @@ def generate_title(messages: list) -> str:
     return "Chat Baru"
 
 def create_new_session() -> str:
-    """Buat sesi chat baru."""
+    """buat sesi chat baru."""
     st.session_state.session_counter += 1
     new_id = f"chat_{st.session_state.session_counter}"
     st.session_state.sessions[new_id] = {
@@ -55,9 +55,30 @@ def create_new_session() -> str:
     return new_id
 
 def delete_session(sid: str) -> str:
-    """Hapus sesi chat."""
+    """hapus sesi chat."""
     deleted_title = st.session_state.sessions[sid]["title"]
     del st.session_state.sessions[sid]
     if st.session_state.active_session == sid:
         st.session_state.active_session = list(st.session_state.sessions.keys())[-1]
     return deleted_title
+
+def export_session_txt(session: dict) -> str:
+    """format percakapan sesi menjadi teks terstruktur untuk diunduh."""
+    title = session.get("title", "Chat")
+    created = session.get("created", "-")
+    lines = [
+        "========================================",
+        "RIWAYAT PERCAKAPAN - FETTY ASSISTANT",
+        f"Sesi   : {title}",
+        f"Waktu  : {created}",
+        "========================================\n",
+    ]
+    for msg in session.get("messages", []):
+        role = "Pengunjung" if msg.get("role") == "user" else "Fetty"
+        content = msg.get("content", "").strip()
+        lines.append(f"[{role}]:\n{content}\n")
+
+    lines.append("========================================")
+    lines.append("Portofolio Fathi Fadhil (fathifadhil.me)")
+    lines.append("========================================")
+    return "\n".join(lines)
