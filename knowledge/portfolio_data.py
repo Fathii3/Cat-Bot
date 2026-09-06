@@ -1,4 +1,139 @@
-PORTFOLIO_CONTEXT = """
+import json
+from pathlib import Path
+
+# ponytail: baca portfolio.json langsung dari disk; upgrade ke vector store jika data > 100kb
+def _build_context_from_json() -> str:
+    candidates = [
+        Path(__file__).resolve().parent.parent / "portfolio.json",
+        Path.cwd() / "portfolio.json",
+        Path("portfolio.json"),
+    ]
+    json_path = next((p for p in candidates if p.is_file()), None)
+    if not json_path:
+        return ""
+
+    try:
+        with open(json_path, "r", encoding="utf-8") as f:
+            data = json.load(f)
+    except Exception:
+        return ""
+
+    lines = []
+
+    # 1. profil
+    profile = data.get("profile", {})
+    lines.append("=== PROFIL UTAMA ===")
+    lines.append(f"Nama: {profile.get('nama', 'Fathi Fadhil')}")
+    lines.append("Website: fathifadhil.me")
+    lines.append(f"Fokus: {profile.get('subJudul', '').strip()}")
+    lines.append("Status: Available for Work & Freelance")
+    lines.append(f"Jurusan: {profile.get('jurusan', 'Teknik Informatika')}")
+    lines.append(f"Email: {profile.get('email', 'fathifadhil10@gmail.com')}")
+    lines.append(f"LinkedIn: {profile.get('linkedinLink', '')}")
+    lines.append(f"GitHub: {profile.get('githubLink', '')}")
+    lines.append(f"Instagram: {profile.get('instagramLink', '')}")
+    lines.append(f"CV: {profile.get('linkCv', '')}")
+    lines.append(f"WhatsApp: {data.get('contact', {}).get('whatsappNumber', '+6282241211466')}")
+    lines.append(f"Deskripsi Home: {profile.get('deskripsiHome', '')}")
+    lines.append(f"Deskripsi About: {profile.get('deskripsiAbout', '')}")
+    lines.append(f"Motivasi: \"{profile.get('motivation', '')}\"")
+    lines.append("")
+
+    # 2. workflow
+    wf = data.get("workflow", {})
+    if wf:
+        lines.append("=== WORKFLOW & METODOLOGI PENGEMBANGAN ===")
+        lines.append(f"Judul: {wf.get('title', {}).get('id', 'Dari Ide Menjadi Produk')}")
+        lines.append(f"Prinsip: {wf.get('description', {}).get('id', '')}")
+        lines.append("Tahapan:")
+        for step in wf.get("steps", []):
+            stitle = step.get("title", {}).get("id", "")
+            slead = step.get("lead", {}).get("id", "")
+            sannot = step.get("annotation", {}).get("id", "")
+            subs = ", ".join([sub.get("label", {}).get("id", "") for sub in step.get("subItems", [])])
+            lines.append(f"- {step.get('id', '').capitalize()} ({stitle}): {slead} [{sannot}] (Fokus: {subs})")
+        lines.append("")
+
+    # 3. tech stack
+    lines.append("=== TECH STACK ===")
+    tech_items = [t.get("nama") for t in data.get("techStack", []) if t.get("nama")]
+    lines.append(f"Keahlian Teknologi: {', '.join(tech_items)}")
+    lines.append("")
+
+    # 4. proyek
+    lines.append("=== PROYEK UNGGULAN & PORTOFOLIO ===")
+    for p in data.get("projects", {}).get("engineering", []):
+        pid = p.get("id", "")
+        title = p.get("judul", "")
+        featured = " ★ Featured" if p.get("featured") else ""
+        tgl = p.get("tanggal", "")
+        lines.append(f"{pid}. {title} ({tgl}){featured}")
+
+        cs = p.get("caseStudy", {})
+        if cs:
+            role = cs.get("role", {}).get("id", "")
+            ctx = cs.get("context", {}).get("id", "")
+            challenge = cs.get("challenge", {}).get("id", "")
+            solution = cs.get("solution", {}).get("id", "")
+            result = cs.get("result", {}).get("id", "")
+            if role: lines.append(f"   - Role: {role}")
+            if ctx: lines.append(f"   - Konteks: {ctx}")
+            if challenge: lines.append(f"   - Tantangan: {challenge}")
+            if solution: lines.append(f"   - Solusi: {solution}")
+            if result: lines.append(f"   - Hasil: {result}")
+
+        desc = p.get("deskripsi", "").split("\n\n")[0].replace("\n", " ")
+        lines.append(f"   - Ringkasan: {desc}")
+        lines.append(f"   - Tech Stack: {p.get('techStack', '')}")
+
+        demo = p.get("linkDemo", "")
+        repo = p.get("linkGithub", "")
+        status = p.get("repositoryStatus", "")
+        if demo: lines.append(f"   - Demo: {demo}")
+        if repo: lines.append(f"   - GitHub: {repo}")
+        elif status: lines.append(f"   - Repositori: {status.capitalize()}")
+        lines.append("")
+
+    # 5. sertifikasi
+    lines.append("=== SERTIFIKASI ===")
+    for c in data.get("certificates", []):
+        cid = c.get("id", "")
+        title = c.get("judul", "")
+        pen = c.get("penerbitTempat", "")
+        dur = c.get("tahunDurasi", "")
+        desc = c.get("deskripsi", "")
+        verif = c.get("verifikasi", "")
+        lines.append(f"{cid}. {title} - {pen} ({dur})")
+        if desc: lines.append(f"   - Deskripsi: {desc}")
+        if verif: lines.append(f"   - Kredensial/Verifikasi: {verif}")
+    lines.append("")
+
+    # 6. pengalaman
+    lines.append("=== PENGALAMAN ===")
+    for exp in data.get("experience", []):
+        eid = exp.get("id", "")
+        judul = exp.get("judul", {}).get("id", "")
+        tempat = exp.get("penerbitTempat", {}).get("id", "")
+        durasi = exp.get("tahunDurasi", {}).get("id", "")
+        desc = exp.get("deskripsi", {}).get("id", "")
+        lines.append(f"{eid}. {judul} - {tempat} ({durasi})")
+        if desc: lines.append(f"   {desc}")
+    lines.append("")
+
+    # 7. kontak
+    lines.append("=== KONTAK & KOLABORASI ===")
+    lines.append(f"{profile.get('contactTitle', 'Hubungi saya.')} {profile.get('contactDesc', '')}")
+    lines.append("Website: https://fathifadhil.me")
+    lines.append(f"Email: {profile.get('email', '')}")
+    lines.append(f"WhatsApp: {data.get('contact', {}).get('whatsappNumber', '')}")
+    lines.append(f"GitHub: {profile.get('githubLink', '')}")
+    lines.append(f"LinkedIn: {profile.get('linkedinLink', '')}")
+
+    return "\n".join(lines)
+
+_DYNAMIC_CONTEXT = _build_context_from_json()
+
+PORTFOLIO_CONTEXT = _DYNAMIC_CONTEXT if _DYNAMIC_CONTEXT else """
 === PROFIL UTAMA ===
 Nama: Fathi Fadhil
 Website: fathifadhil.me
@@ -15,82 +150,22 @@ Deskripsi: Suka eksplorasi teknologi web, mobile, dan AI untuk membangun aplikas
 Motivasi: "Inovasi membedakan seorang pemimpin dari seorang pengikut."
 
 === TECH STACK ===
-Bahasa Pemrograman:
-![JavaScript](https://img.shields.io/badge/JavaScript-F7DF1E?logo=javascript&logoColor=black) ![TypeScript](https://img.shields.io/badge/TypeScript-3178C6?logo=typescript&logoColor=white) ![Dart](https://img.shields.io/badge/Dart-0175C2?logo=dart&logoColor=white) ![Python](https://img.shields.io/badge/Python-3776AB?logo=python&logoColor=white) ![PHP](https://img.shields.io/badge/PHP-777BB4?logo=php&logoColor=white) ![C++](https://img.shields.io/badge/C++-00599C?logo=cplusplus&logoColor=white) ![HTML5](https://img.shields.io/badge/HTML5-E34F26?logo=html5&logoColor=white) ![CSS3](https://img.shields.io/badge/CSS3-1572B6?logo=css3&logoColor=white)
-
-Framework & Frontend:
-![React](https://img.shields.io/badge/React-20232A?logo=react&logoColor=61DAFB) ![Next.js](https://img.shields.io/badge/Next.js-000000?logo=nextdotjs&logoColor=white) ![Flutter](https://img.shields.io/badge/Flutter-02569B?logo=flutter&logoColor=white) ![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-06B6D4?logo=tailwindcss&logoColor=white) ![Framer Motion](https://img.shields.io/badge/Framer_Motion-0055FF?logo=framer&logoColor=white) ![Vite](https://img.shields.io/badge/Vite-646CFF?logo=vite&logoColor=white)
-
-Backend & Database:
-![Node.js](https://img.shields.io/badge/Node.js-339933?logo=nodedotjs&logoColor=white) ![Express.js](https://img.shields.io/badge/Express.js-000000?logo=express&logoColor=white) ![PostgreSQL](https://img.shields.io/badge/PostgreSQL-4169E1?logo=postgresql&logoColor=white) ![MySQL](https://img.shields.io/badge/MySQL-4479A1?logo=mysql&logoColor=white) ![SQLite](https://img.shields.io/badge/SQLite-003B57?logo=sqlite&logoColor=white) ![Firebase](https://img.shields.io/badge/Firebase-FFCA28?logo=firebase&logoColor=black) ![Supabase](https://img.shields.io/badge/Supabase-3ECF8E?logo=supabase&logoColor=white)
-
-DevOps & AI:
-![Docker](https://img.shields.io/badge/Docker-2496ED?logo=docker&logoColor=white) ![Git](https://img.shields.io/badge/Git-F05032?logo=git&logoColor=white) ![GitHub](https://img.shields.io/badge/GitHub-181717?logo=github&logoColor=white) ![Gemini AI](https://img.shields.io/badge/Gemini_AI-8E75FF?logo=google&logoColor=white)
-Networking: Huawei eNSP, Cisco Packet Tracer
-Lainnya: Canva, Microsoft Word, Microsoft Excel, Roblox Studio
+Bahasa Pemrograman: JavaScript, TypeScript, Dart, Python, PHP, C++, HTML5, CSS3
+Framework & Frontend: React, Next.js, Flutter, Tailwind CSS, Framer Motion, Vite
+Backend & Database: Node.js, Express.js, PostgreSQL, MySQL, SQLite, Firebase, Supabase
+DevOps & AI: Docker, Git, GitHub, Gemini AI, Streamlit
 
 === PROYEK UNGGULAN ===
-
-1. FINARA (Agustus 2026) ★ Featured
-   - Deskripsi: Aplikasi manajemen keuangan pribadi dan Smart POS bisnis offline-first dengan Google Gemini AI untuk analisis finansial cerdas.
-   - Role: Lead Software Engineer & Full-Stack Flutter Developer
-   - Tech: Flutter, Dart, SQLite (sqflite), Google Gemini AI API, AES-256 GCM Crypto, Provider, FL Chart, PDF & Excel Generator, Flutter Secure Storage, Barcode & SKU Scanner
-   - Fitur Utama: Manajemen keuangan ganda (Personal & Bisnis POS), Asisten AI kontekstual (Floating AI), enkripsi AES-256 GCM + SHA-256, cetak barcode SKU, laporan PDF & Excel, kasbon pelanggan via WA.
-   - Tantangan: Arsitektur dual-mode financial ecosystem dengan Offline-First dan zero server dependency + enkripsi data tingkat tinggi.
-   - Demo: https://dist.nex.biz.id/d/fike2sze
-   - GitHub: https://github.com/Fathii3/FINARA.git
-
-2. SKM Langkat - Survei Kepuasan Masyarakat (Agustus 2026) ★ Featured
-   - Deskripsi: Platform digital untuk mengukur Indeks Kepuasan Masyarakat (IKM) terhadap layanan publik Kabupaten Langkat. Hasil dari Praktek Kerja Lapangan (PKL).
-   - Role: Lead Software Engineer / Full Stack Developer
-   - Tech: Laravel 13, PHP 8.3, Tailwind CSS v4, Vite, MySQL / SQLite, QR Code Generator, Blade Engine, REST API
-   - Fitur Utama: Multi-role access (Super Admin & Admin Dinas), enkripsi PII end-to-end, QR Code dinamis per-dinas, anti-fraud multi-lapis (IP, Cookie Hash, Browser Fingerprint, DB Locks), kalkulasi IKM otomatis, ekspor PDF/Excel/CSV.
-   - Demo: https://skm.langkatkab.go.id
-   - Repository: Private
-
-3. SiBanjir (Juni 2026) ★ Featured
-   - Deskripsi: Sistem peringatan dini dan pemantauan banjir berbasis komunitas (crowdsourcing).
-   - Role: Application Developer (Proyek kelompok)
-   - Tech: Flutter, Dart, Firebase, Supabase, Riverpod, Local Storage (Caching)
-   - Fitur Utama: Pelaporan titik genangan real-time, pemetaan waktu nyata, geofencing alarm peringatan dini otomatis, kontak darurat & lokasi evakuasi.
-   - Repository: Private
-
-4. Dapur Ode (Juni 2026) ★ Featured
-   - Deskripsi: Website pemesanan menu makanan tanpa framework tambahan.
-   - Tech: HTML, CSS, PHP, PHPMailer, OpenRouteService, MySQL, PDO
-   - Fitur Utama: Ongkos kirim otomatis berdasarkan jarak, pemantauan pesanan real-time, laporan keuangan bulanan.
-   - Demo: https://dapur-ode.free.nf
-
-5. SecuScan (Juni 2026) ★ Featured
-   - Deskripsi: Aplikasi validasi tiket QR Code dengan enkripsi AES-256-CBC.
-   - Tech: Flutter, Dart, Firestore, AES-256 Encryption
-   - Fitur Utama: Pemindaian QR tiket terenkripsi, validasi status Firestore real-time, rotasi kunci enkripsi admin.
-
-6. Polynomial Field Calculator (Mei 2026) ★ Featured
-   - Deskripsi: Alat bantu pembelajaran interaktif aritmatika polinomial di Galois Field GF(p) dan GF(p^n).
-   - Tech: Python3, HTML5, CSS3, Vanilla JavaScript, Flask
-   - GitHub: https://github.com/Fathii3/Polynomial-Field-Calculator.git
-
-7. Wi-Fi Connect & Network Monitoring System (Juli 2026) ★ Featured
-   - Deskripsi: Portal tamu Wi-Fi modern dan pemantauan jaringan lokal dengan Neumorphism UI.
-   - Tech: HTML5, JavaScript, Tailwind CSS, Node.js, Express.js, Puppeteer, Vercel Serverless, Ngrok Tunnel, QRCode.js
-   - Demo: https://wifi-rumah.vercel.app
-   - GitHub: https://github.com/Fathii3/Wifi-Rumah.git
-
-8. fets - Platform Source Code & Template Web (Agustus 2026) ★ Featured
-   - Deskripsi: Toko digital statis ultra-cepat untuk katalog source code dan template web.
-   - Tech: HTML5, Tailwind CSS v3, JavaScript, Firebase Firestore REST API, Firebase Auth Google OAuth, WhatsApp API, Vercel CDN
-   - Fitur Utama: Zero-SDK Read Strategy, checkout WhatsApp instan, Google OAuth on-demand, Dark Mode.
-   - Demo: https://fetty-sell.nex.biz.id
-
-9. Dist - Hub Distribusi Berkas & APK Developer Modern (Agustus 2026) ★ Featured
-   - Tagline: Hub Distribusi Berkas & APK Developer Modern: Bebas Iklan, Tanpa Login, & Berkecepatan Tinggi
-   - Deskripsi: Portal distribusi berkas biner dan installer software/APK bebas iklan, tanpa login, dan berkecepatan tinggi.
-   - Status: Production (dist.nex.biz.id)
-   - Tech Badges:
-     ![Production](https://img.shields.io/badge/Production-dist.nex.biz.id-00df8f?logo=vercel&logoColor=white&labelColor=222222) ![Next.js](https://img.shields.io/badge/Next.js-000000?logo=nextdotjs&logoColor=white) ![React](https://img.shields.io/badge/React-20232A?logo=react&logoColor=61DAFB) ![TypeScript](https://img.shields.io/badge/TypeScript-3178C6?logo=typescript&logoColor=white) ![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-06B6D4?logo=tailwindcss&logoColor=white) ![Framer Motion](https://img.shields.io/badge/Framer_Motion-0055FF?logo=framer&logoColor=white) ![Node.js](https://img.shields.io/badge/Node.js-339933?logo=nodedotjs&logoColor=white)
-   - Fitur Utama: Tautan pendek /d/[shortId], selektor arsitektur multi-platform (ARM64, x64, x86), verifikasi SHA-256, Tactile UI, download instan berkecepatan tinggi.
-   - Demo: https://dist.nex.biz.id
+1. FINARA (Agustus 2026) ★ Featured - Flutter, Dart, SQLite, Google Gemini AI API, POS & Personal Finance
+2. SKM Langkat - Survei Kepuasan Masyarakat (Agustus 2026) ★ Featured - Laravel 13, PHP 8.3, Tailwind CSS v4, PKL
+3. SiBanjir (Juni 2026) ★ Featured - Flutter, Dart, Firebase, Supabase, Riverpod
+4. Dapur Ode (Juni 2026) ★ Featured - HTML, CSS, PHP, OpenRouteService
+5. SecuScan (Juni 2026) ★ Featured - Flutter, Dart, Firestore, AES-256
+6. Polynomial Field Calculator (Mei 2026) ★ Featured - Python3, Flask
+7. Wi-Fi Connect & Network Monitoring System (Juli 2026) ★ Featured - Node.js, Tailwind, Puppeteer
+8. fets - Platform Source Code & Template Web (Agustus 2026) ★ Featured - Tailwind, Firestore REST API
+9. Dist - Hub Distribusi Berkas & APK Developer Modern (Agustus 2026) ★ Featured - Next.js 14, React 18
+10. Fetty Assistant - Asisten Portofolio Interaktif Berbasis AI (September 2026) ★ Featured - Python, Streamlit, Gemini
 
 === SERTIFIKASI ===
 1. #JuaraVibeCoding Participant - Google Developer Groups (Mei 2026)
@@ -102,15 +177,13 @@ Lainnya: Canva, Microsoft Word, Microsoft Excel, Roblox Studio
 
 === PENGALAMAN ===
 1. Praktik Kerja Lapangan (PKL) - Diskominfo Kabupaten Langkat (Juli - Agustus 2026)
-   Pengelolaan jaringan komputer, pemeliharaan sistem informasi daerah, dan infrastruktur IT pemerintah.
 2. Pengembangan Mandiri & Eksplorasi Teknologi (2025 - Sekarang)
-   Riset mandiri pengembangan Web, Flutter, dan eksplorasi tools AI modern.
 
 === KONTAK & KOLABORASI ===
-Terbuka untuk peluang kerja, kolaborasi, maupun proyek freelance.
-- Website: https://fathifadhil.me
-- Email: fathifadhil10@gmail.com
-- WhatsApp: +6282241211466
-- GitHub: https://github.com/Fathii3
-- LinkedIn: https://www.linkedin.com/in/fathi-fadhil-45063320a
+Website: https://fathifadhil.me
+Email: fathifadhil10@gmail.com
+WhatsApp: +6282241211466
+GitHub: https://github.com/Fathii3
+LinkedIn: https://www.linkedin.com/in/fathi-fadhil-45063320a
 """
+

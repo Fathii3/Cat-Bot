@@ -123,6 +123,10 @@ TECH_BADGE_MAP = {
     "javascript": "![JavaScript](https://img.shields.io/badge/JavaScript-F7DF1E?logo=javascript&logoColor=black)",
     "html5": "![HTML5](https://img.shields.io/badge/HTML5-E34F26?logo=html5&logoColor=white)",
     "css3": "![CSS3](https://img.shields.io/badge/CSS3-1572B6?logo=css3&logoColor=white)",
+    "streamlit": "![Streamlit](https://img.shields.io/badge/Streamlit-FF4B4B?logo=streamlit&logoColor=white)",
+    "google gemini": "![Google Gemini](https://img.shields.io/badge/Google_Gemini-8E75B2?logo=google&logoColor=white)",
+    "gemini api": "![Gemini API](https://img.shields.io/badge/Gemini_API-8E75FF?logo=google&logoColor=white)",
+    "lucide icons": "![Lucide Icons](https://img.shields.io/badge/Lucide_Icons-F56565?logo=lucide&logoColor=white)",
 }
 
 def format_tech_badges(text: str) -> str:
