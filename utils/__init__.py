@@ -1,6 +1,8 @@
 """modul utilitas fetty."""
 from .session_manager import (
     DEFAULT_MESSAGES,
+    get_default_messages,
+    sync_initial_greeting,
     init_session_state,
     get_active_session,
     get_active_messages,
@@ -27,6 +29,8 @@ from .rate_limiter import (
 
 __all__ = [
     "DEFAULT_MESSAGES",
+    "get_default_messages",
+    "sync_initial_greeting",
     "init_session_state",
     "get_active_session",
     "get_active_messages",

@@ -130,32 +130,47 @@ def record_question(ip: str):
     _save_all_records(records)
 
 
-def render_rate_limit_badge(info: dict):
+def render_rate_limit_badge(info: dict, is_en: bool = True):
     """tampilkan indikator kuota dan status jeda anti-spam."""
     remaining = info["remaining_questions"]
     limit = info["limit"]
     cooldown = info["cooldown_remaining"]
 
     if info["is_daily_limit_reached"]:
+        text = (
+            f"<strong>Daily Limit Reached ({limit}/{limit})</strong>: Your IP question quota is exhausted for today. Please come back tomorrow!"
+            if is_en
+            else f"<strong>Batas Harian Tercapai ({limit}/{limit})</strong>: Kuota pertanyaan untuk alamat IP kamu sudah habis hari ini. Silakan kembali lagi besok ya!"
+        )
         st.markdown(
             f"""
             <div style="background: #fef2f2; border: 1px solid #fecaca; border-radius: 8px; padding: 10px 14px; margin-bottom: 8px; font-size: 13px; color: #991b1b; display: flex; align-items: center; gap: 8px;">
                 <span style="display: inline-flex; align-items: center; color: #dc2626;">{ICON["alert"]}</span>
-                <span><strong>Batas Harian Tercapai ({limit}/{limit})</strong>: Kuota pertanyaan untuk alamat IP kamu sudah habis hari ini. Silakan kembali lagi besok ya!</span>
+                <span>{text}</span>
             </div>
             """,
             unsafe_allow_html=True,
         )
     elif cooldown > 0:
+        cd_msg = (
+            f"Anti-spam cooldown: please wait <strong>{cooldown}s</strong> before sending the next message."
+            if is_en
+            else f"Jeda anti-spam: tunggu <strong>{cooldown} detik</strong> sebelum mengirim pesan berikutnya."
+        )
+        quota_msg = (
+            f"Remaining quota: {remaining}/{limit}"
+            if is_en
+            else f"Sisa kuota: {remaining}/{limit}"
+        )
         st.markdown(
             f"""
             <div style="background: #fffbeb; border: 1px solid #fde68a; border-radius: 8px; padding: 10px 14px; margin-bottom: 8px; font-size: 13px; color: #92400e; display: flex; flex-direction: column; gap: 6px;">
                 <div style="display: flex; align-items: center; justify-content: space-between;">
                     <div style="display: flex; align-items: center; gap: 8px;">
                         <span style="display: inline-flex; align-items: center; color: #d97706;">{ICON["hourglass"]}</span>
-                        <span>Jeda anti-spam: tunggu <strong>{cooldown} detik</strong> sebelum mengirim pesan berikutnya.</span>
+                        <span>{cd_msg}</span>
                     </div>
-                    <span style="font-size: 11px; background: #fef3c7; border: 1px solid #fcd34d; padding: 2px 8px; border-radius: 12px; font-weight: 600;">Sisa kuota: {remaining}/{limit}</span>
+                    <span style="font-size: 11px; background: #fef3c7; border: 1px solid #fcd34d; padding: 2px 8px; border-radius: 12px; font-weight: 600;">{quota_msg}</span>
                 </div>
                 <div style="width: 100%; height: 4px; background: #fde68a; border-radius: 2px; overflow: hidden;">
                     <div style="width: {(cooldown / COOLDOWN_SECONDS) * 100}%; height: 100%; background: #d97706; transition: width 1s linear;"></div>
@@ -165,11 +180,21 @@ def render_rate_limit_badge(info: dict):
             unsafe_allow_html=True,
         )
     else:
+        spam_msg = (
+            "Anti-spam active (30s cooldown)"
+            if is_en
+            else "Anti-spam aktif (jeda 30 detik)"
+        )
+        daily_msg = (
+            f"Daily quota: <strong>{remaining}/{limit}</strong> questions"
+            if is_en
+            else f"Kuota harian: <strong>{remaining}/{limit}</strong> pertanyaan"
+        )
         st.markdown(
             f"""
             <div style="display: flex; align-items: center; justify-content: space-between; font-size: 12px; color: #64748b; padding: 4px 8px; margin-bottom: 4px;">
-                <span style="display: inline-flex; align-items: center; gap: 4px;">{ICON["shield"]} Anti-spam aktif (jeda 30 detik)</span>
-                <span>Kuota harian: <strong>{remaining}/{limit}</strong> pertanyaan</span>
+                <span style="display: inline-flex; align-items: center; gap: 4px;">{ICON["shield"]} {spam_msg}</span>
+                <span>{daily_msg}</span>
             </div>
             """,
             unsafe_allow_html=True,

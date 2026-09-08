@@ -245,6 +245,42 @@ def apply_custom_css():
         display: inline-block !important;
     }
 
+    /* toggle switch bahasa (clean segmented pill) */
+    section[data-testid="stSidebar"] [data-testid="stSegmentedControl"] {
+        margin: 2px 0 10px 0 !important;
+        width: 100% !important;
+    }
+    section[data-testid="stSidebar"] [data-testid="stSegmentedControl"] > div {
+        width: 100% !important;
+        background: #f1f5f9 !important;
+        border: 1px solid #e2e8f0 !important;
+        border-radius: 12px !important;
+        padding: 3px !important;
+        display: flex !important;
+        gap: 4px !important;
+    }
+    section[data-testid="stSidebar"] [data-testid="stSegmentedControl"] button {
+        flex: 1 !important;
+        border-radius: 9px !important;
+        font-weight: 600 !important;
+        font-size: 12.5px !important;
+        border: none !important;
+        padding: 6px 12px !important;
+        transition: all 0.2s cubic-bezier(0.22, 1, 0.36, 1) !important;
+        color: #64748b !important;
+        background: transparent !important;
+    }
+    section[data-testid="stSidebar"] [data-testid="stSegmentedControl"] button:hover {
+        color: #0f172a !important;
+        background: rgba(255, 255, 255, 0.7) !important;
+    }
+    section[data-testid="stSidebar"] [data-testid="stSegmentedControl"] button[aria-checked="true"],
+    section[data-testid="stSidebar"] [data-testid="stSegmentedControl"] button[data-checked="true"] {
+        background: #ffffff !important;
+        color: #059669 !important;
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08) !important;
+    }
+
     .sidebar-section-title {
         font-size: 11px;
         font-weight: 600;

@@ -1,21 +1,31 @@
 from datetime import datetime
 import streamlit as st
 
-DEFAULT_MESSAGES = [
-    {
-        "role": "assistant",
-        "content": "Halo meow! Aku Fetty, asisten Fathi Fadhil. Mau tanya seputar proyek, keahlian, atau tech stack Fathi? Tanya aja!"
-    }
-]
+def get_default_messages(is_en: bool = True) -> list:
+    """ambil pesan pembuka sesuai bahasa (gaya natural tech companion)."""
+    content = (
+        "Meow! Hey there, I'm Fetty — Fathi's AI companion 🐾\n\nCurious about his engineering projects, tech stack, or full-stack journey? Ask me anything, or tap one of the quick prompts below!"
+        if is_en
+        else "Halo meow! Aku Fetty, asisten AI Fathi Fadhil 🐾\n\nMau kepoin proyek unggulan, cara kerja (workflow), atau tech stack Fathi? Tanya apa aja, Fetty siap bantu!"
+    )
+    return [{"role": "assistant", "content": content}]
 
-def init_session_state():
+DEFAULT_MESSAGES = get_default_messages(is_en=True)
+
+def sync_initial_greeting(session: dict, is_en: bool):
+    """perbarui pesan pembuka jika belum ada percakapan user."""
+    msgs = session.get("messages", [])
+    if len(msgs) == 1 and msgs[0].get("role") == "assistant":
+        msgs[0]["content"] = get_default_messages(is_en)[0]["content"]
+
+def init_session_state(is_en: bool = True):
     """inisialisasi riwayat chat di memori sesi."""
     if "sessions" not in st.session_state:
         first_id = "chat_1"
         st.session_state.sessions = {
             first_id: {
-                "title": "Chat Baru",
-                "messages": list(DEFAULT_MESSAGES),
+                "title": "New Chat" if is_en else "Chat Baru",
+                "messages": get_default_messages(is_en),
                 "created": datetime.now().strftime("%d/%m %H:%M")
             }
         }
@@ -40,15 +50,15 @@ def generate_title(messages: list) -> str:
         if msg["role"] == "user":
             text = msg["content"].strip()
             return text[:26] + "..." if len(text) > 26 else text
-    return "Chat Baru"
+    return "New Chat"
 
-def create_new_session() -> str:
+def create_new_session(is_en: bool = True) -> str:
     """buat sesi chat baru."""
     st.session_state.session_counter += 1
     new_id = f"chat_{st.session_state.session_counter}"
     st.session_state.sessions[new_id] = {
-        "title": "Chat Baru",
-        "messages": list(DEFAULT_MESSAGES),
+        "title": "New Chat" if is_en else "Chat Baru",
+        "messages": get_default_messages(is_en),
         "created": datetime.now().strftime("%d/%m %H:%M")
     }
     st.session_state.active_session = new_id

@@ -1,12 +1,13 @@
 import streamlit as st
 from components.icons import ICON
 
-def show_skeleton():
+def show_skeleton(is_en: bool = True):
     """Animasi loading saat ai memproses jawaban."""
-    st.markdown("""
+    label = "fetty is thinking" if is_en else "fetty lagi mikir"
+    st.markdown(f"""
     <div class="skeleton-box">
         <div class="thinking-pill">
-            <span>fetty lagi mikir</span>
+            <span>{label}</span>
             <span class="pulse-dot"></span>
             <span class="pulse-dot"></span>
             <span class="pulse-dot"></span>
@@ -44,19 +45,21 @@ def render_sidebar_brand():
     </div>
     """, unsafe_allow_html=True)
 
-def render_top_navbar(active_session: dict):
+def render_top_navbar(active_session: dict, is_en: bool = True):
     """Navbar atas sesi chat aktif."""
+    time_label = "Created" if is_en else "Dibuat"
+    status_label = "Active" if is_en else "Aktif"
     st.markdown(f"""
     <div class="top-navbar">
         <div class="nav-left">
             <div class="nav-avatar">{ICON["cat"]}</div>
             <div>
                 <div class="nav-title">{active_session['title']}</div>
-                <div class="nav-time">{ICON["clock"]} Dibuat {active_session['created']}</div>
+                <div class="nav-time">{ICON["clock"]} {time_label} {active_session['created']}</div>
             </div>
         </div>
         <div class="nav-badge">
-            <span class="status-dot"></span> Aktif
+            <span class="status-dot"></span> {status_label}
         </div>
     </div>
     """, unsafe_allow_html=True)
