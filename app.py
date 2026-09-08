@@ -77,10 +77,7 @@ with st.sidebar:
         created = session["created"]
         session_icon = ":material/radio_button_checked:" if is_active else ":material/chat_bubble:"
 
-        if total_sessions > 1:
-            col_btn, col_save, col_del = st.columns([5, 1, 1], vertical_alignment="center")
-        else:
-            col_btn, col_save = st.columns([5, 1], vertical_alignment="center")
+        col_btn, col_opt = st.columns([5, 1], vertical_alignment="center")
 
         with col_btn:
             if st.button(
@@ -95,26 +92,25 @@ with st.sidebar:
                 st.toast(f"Pindah ke: {title}", icon=":material/folder_open:")
                 st.rerun()
 
-        with col_save:
-            txt_data = export_session_txt(session)
-            safe_title = "".join(c for c in title if c.isalnum() or c in (" ", "_", "-")).strip().replace(" ", "_")
-            file_name = f"chat_{safe_title[:18] if safe_title else 'fetty'}.txt"
-            st.download_button(
-                label="",
-                data=txt_data,
-                file_name=file_name,
-                mime="text/plain",
-                icon=":material/download:",
-                key=f"dl_{sid}",
-                use_container_width=False
-            )
-
-        if total_sessions > 1:
-            with col_del:
-                if st.button("", icon=":material/delete:", key=f"del_{sid}", help="Hapus chat ini", use_container_width=False):
-                    deleted_title = delete_session(sid)
-                    st.toast(f"Chat \"{deleted_title}\" dihapus", icon=":material/delete:")
-                    st.rerun()
+        with col_opt:
+            with st.popover("", icon=":material/more_vert:", help="Opsi sesi"):
+                txt_data = export_session_txt(session)
+                safe_title = "".join(c for c in title if c.isalnum() or c in (" ", "_", "-")).strip().replace(" ", "_")
+                file_name = f"chat_{safe_title[:18] if safe_title else 'fetty'}.txt"
+                st.download_button(
+                    label="Unduh .txt",
+                    data=txt_data,
+                    file_name=file_name,
+                    mime="text/plain",
+                    icon=":material/download:",
+                    key=f"dl_{sid}",
+                    use_container_width=True
+                )
+                if total_sessions > 1:
+                    if st.button("Hapus Chat", icon=":material/delete:", key=f"del_{sid}", use_container_width=True):
+                        deleted_title = delete_session(sid)
+                        st.toast(f"Chat \"{deleted_title}\" dihapus", icon=":material/delete:")
+                        st.rerun()
 
     st.markdown(f"""
     <div class="sidebar-footer">

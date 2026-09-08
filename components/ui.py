@@ -20,24 +20,14 @@ def show_skeleton():
     """, unsafe_allow_html=True)
 
 def show_callout(text: str, type: str = "tip", title: str = None):
-    """Kotak pesan informasi atau peringatan."""
-    icon_map = {
-        "tip": ICON["lightbulb"],
-        "warning": ICON["alert"],
-        "info": ICON["info"],
-        "check": ICON["check"]
-    }
-    icon_svg = icon_map.get(type, ICON["info"])
-    title_html = f'<div class="callout-title">{title}</div>' if title else ""
-    st.markdown(f"""
-    <div class="callout callout-{type}">
-        <div class="callout-icon">{icon_svg}</div>
-        <div class="callout-content">
-            {title_html}
-            {text}
-        </div>
-    </div>
-    """, unsafe_allow_html=True)
+    """Kotak pesan informasi atau peringatan menggunakan API bawaan Streamlit."""
+    msg = f"**{title}**\n\n{text}" if title else text
+    if type == "warning":
+        st.warning(msg, icon=":material/warning:")
+    elif type == "check":
+        st.success(msg, icon=":material/check_circle:")
+    else:
+        st.info(msg, icon=":material/lightbulb:")
 
 def render_sidebar_brand():
     """Header brand pada sidebar."""

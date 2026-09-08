@@ -314,145 +314,50 @@ def apply_custom_css():
         box-shadow: 0 1px 3px rgba(5, 150, 105, 0.1) !important;
     }
 
-    /* baris sesi */
+    /* baris sesi chat di sidebar */
     section[data-testid="stSidebar"] [data-testid="stHorizontalBlock"] {
         display: flex !important;
         flex-direction: row !important;
-        flex-wrap: nowrap !important;
         align-items: center !important;
-        justify-content: space-between !important;
         gap: 6px !important;
         margin-bottom: 4px !important;
         width: 100% !important;
-        min-width: 0 !important;
     }
 
-    /* atasi paksa media query mobile streamlit agar kolom tidak menjadi 100% */
-    section[data-testid="stSidebar"] [data-testid="stHorizontalBlock"] [data-testid="stColumn"],
-    section[data-testid="stSidebar"] [data-testid="stHorizontalBlock"] > div {
-        min-width: 0 !important;
-        max-width: 100% !important;
-        box-sizing: border-box !important;
-    }
-
-    /* kolom 1: judul percakapan */
-    section[data-testid="stSidebar"] [data-testid="stHorizontalBlock"] > [data-testid="stColumn"]:first-child,
-    section[data-testid="stSidebar"] [data-testid="stHorizontalBlock"] > div:first-child {
+    section[data-testid="stSidebar"] [data-testid="stHorizontalBlock"] > [data-testid="stColumn"]:first-child {
         flex: 1 1 auto !important;
-        width: auto !important;
         min-width: 0 !important;
     }
 
-    /* kolom 2 (unduh) & kolom 3 (hapus) */
-    section[data-testid="stSidebar"] [data-testid="stHorizontalBlock"] > [data-testid="stColumn"]:not(:first-child),
-    section[data-testid="stSidebar"] [data-testid="stHorizontalBlock"] > div:not(:first-child) {
-        flex: 0 0 36px !important;
-        width: 36px !important;
-        min-width: 36px !important;
-        max-width: 36px !important;
-        display: flex !important;
-        align-items: center !important;
-        justify-content: center !important;
-        overflow: hidden !important;
+    section[data-testid="stSidebar"] [data-testid="stHorizontalBlock"] > [data-testid="stColumn"]:last-child {
+        flex: 0 0 38px !important;
+        width: 38px !important;
+        min-width: 38px !important;
     }
 
-    /* semua kontainer perantara di dalam kolom aksi */
-    section[data-testid="stSidebar"] [data-testid="stHorizontalBlock"] > [data-testid="stColumn"]:not(:first-child) [data-testid="stVerticalBlock"],
-    section[data-testid="stSidebar"] [data-testid="stHorizontalBlock"] > [data-testid="stColumn"]:not(:first-child) [data-testid="stElementContainer"],
-    section[data-testid="stSidebar"] [data-testid="stHorizontalBlock"] > [data-testid="stColumn"]:not(:first-child) [data-testid="stDownloadButton"] {
-        width: 36px !important;
-        min-width: 36px !important;
-        max-width: 36px !important;
-        height: 36px !important;
-        min-height: 36px !important;
-        max-height: 36px !important;
-        margin: 0 !important;
+    /* tombol popover opsi sesi */
+    section[data-testid="stSidebar"] [data-testid="stPopover"] button {
+        width: 38px !important;
+        height: 38px !important;
+        min-width: 38px !important;
+        min-height: 38px !important;
         padding: 0 !important;
         display: flex !important;
         align-items: center !important;
         justify-content: center !important;
-    }
-
-    /* gaya tombol aksi (unduh & hapus) di sidebar */
-    section[data-testid="stSidebar"] [data-testid="stHorizontalBlock"] > [data-testid="stColumn"]:not(:first-child) button {
-        width: 36px !important;
-        height: 36px !important;
-        min-width: 36px !important;
-        max-width: 36px !important;
-        min-height: 36px !important;
-        max-height: 36px !important;
-        padding: 0 !important;
-        margin: 0 !important;
-        display: flex !important;
-        align-items: center !important;
-        justify-content: center !important;
-        border-radius: 8px !important;
-        cursor: pointer !important;
-        touch-action: manipulation !important;
-        pointer-events: auto !important;
-        transition: all 0.2s cubic-bezier(0.22, 1, 0.36, 1) !important;
-        box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04) !important;
-        text-align: center !important;
-        box-sizing: border-box !important;
-    }
-
-    /* tombol unduh */
-    section[data-testid="stSidebar"] [data-testid="stDownloadButton"] button {
-        background: #ffffff !important;
+        border-radius: 9px !important;
         border: 1px solid #e2e8f0 !important;
-        color: #64748b !important;
-    }
-    section[data-testid="stSidebar"] [data-testid="stDownloadButton"] button:hover {
-        background: #ecfdf5 !important;
-        border-color: #a7f3d0 !important;
-        color: #059669 !important;
-        transform: scale(1.06) !important;
-        box-shadow: 0 2px 6px rgba(5, 150, 105, 0.15) !important;
-    }
-    section[data-testid="stSidebar"] [data-testid="stDownloadButton"] button:active {
-        transform: scale(0.96) !important;
-        background: #d1fae5 !important;
-    }
-    section[data-testid="stSidebar"] [data-testid="stDownloadButton"] button span {
-        color: inherit !important;
-    }
-    section[data-testid="stSidebar"] [data-testid="stDownloadButton"] button:hover span {
-        color: #059669 !important;
-    }
-
-    /* tombol hapus */
-    section[data-testid="stSidebar"] [data-testid="stHorizontalBlock"] > [data-testid="stColumn"]:last-child button:not([data-testid="stDownloadButton"] button) {
         background: #ffffff !important;
-        border: 1px solid #fee2e2 !important;
-        color: #94a3b8 !important;
+        color: #64748b !important;
+        transition: all 0.2s cubic-bezier(0.22, 1, 0.36, 1) !important;
     }
-    section[data-testid="stSidebar"] [data-testid="stHorizontalBlock"] > [data-testid="stColumn"]:last-child button:not([data-testid="stDownloadButton"] button):hover {
-        background: #fef2f2 !important;
-        border-color: #fecaca !important;
-        color: #ef4444 !important;
-        transform: scale(1.06) !important;
-        box-shadow: 0 2px 6px rgba(239, 68, 68, 0.15) !important;
+    section[data-testid="stSidebar"] [data-testid="stPopover"] button:hover {
+        border-color: #059669 !important;
+        color: #059669 !important;
+        background: #f0fdf4 !important;
     }
-    section[data-testid="stSidebar"] [data-testid="stHorizontalBlock"] > [data-testid="stColumn"]:last-child button:not([data-testid="stDownloadButton"] button):active {
-        transform: scale(0.96) !important;
-        background: #fee2e2 !important;
-    }
-    section[data-testid="stSidebar"] [data-testid="stHorizontalBlock"] > [data-testid="stColumn"]:last-child button:not([data-testid="stDownloadButton"] button) span {
-        color: inherit !important;
-    }
-    section[data-testid="stSidebar"] [data-testid="stHorizontalBlock"] > [data-testid="stColumn"]:last-child button:not([data-testid="stDownloadButton"] button):hover span {
-        color: #ef4444 !important;
-    }
-
-    /* bersihkan teks kosong di tombol unduh & hapus */
-    section[data-testid="stSidebar"] [data-testid="stHorizontalBlock"] > [data-testid="stColumn"]:not(:first-child) button p {
+    section[data-testid="stSidebar"] [data-testid="stPopover"] button p {
         display: none !important;
-        margin: 0 !important;
-        padding: 0 !important;
-    }
-    section[data-testid="stSidebar"] [data-testid="stHorizontalBlock"] > [data-testid="stColumn"]:not(:first-child) button [data-testid="stIconMaterial"] {
-        margin: 0 !important;
-        font-size: 18px !important;
     }
 
     /* tampilan mobile */
@@ -523,56 +428,28 @@ def apply_custom_css():
             flex-shrink: 0 !important;
         }
 
-        /* kunci paksa horizontal row di mobile */
+        /* baris sesi di mobile */
         section[data-testid="stSidebar"] [data-testid="stHorizontalBlock"] {
             display: flex !important;
             flex-direction: row !important;
-            flex-wrap: nowrap !important;
             align-items: center !important;
-            justify-content: space-between !important;
             gap: 4px !important;
             width: 100% !important;
-            min-width: 0 !important;
         }
-
-        /* matikan paksa min-width 100% mobile streamlit */
-        section[data-testid="stSidebar"] [data-testid="stHorizontalBlock"] [data-testid="stColumn"],
-        section[data-testid="stSidebar"] [data-testid="stHorizontalBlock"] > div {
-            min-width: 0 !important;
-            max-width: 100% !important;
-        }
-
-        /* kolom judul di mobile */
-        section[data-testid="stSidebar"] [data-testid="stHorizontalBlock"] > [data-testid="stColumn"]:first-child,
-        section[data-testid="stSidebar"] [data-testid="stHorizontalBlock"] > div:first-child {
+        section[data-testid="stSidebar"] [data-testid="stHorizontalBlock"] > [data-testid="stColumn"]:first-child {
             flex: 1 1 auto !important;
-            width: auto !important;
             min-width: 0 !important;
         }
-
-        /* kolom aksi di mobile */
-        section[data-testid="stSidebar"] [data-testid="stHorizontalBlock"] > [data-testid="stColumn"]:not(:first-child),
-        section[data-testid="stSidebar"] [data-testid="stHorizontalBlock"] > div:not(:first-child) {
-            flex: 0 0 32px !important;
-            width: 32px !important;
-            min-width: 32px !important;
-            max-width: 32px !important;
-            display: flex !important;
-            align-items: center !important;
-            justify-content: center !important;
+        section[data-testid="stSidebar"] [data-testid="stHorizontalBlock"] > [data-testid="stColumn"]:last-child {
+            flex: 0 0 34px !important;
+            width: 34px !important;
+            min-width: 34px !important;
         }
-
-        section[data-testid="stSidebar"] [data-testid="stHorizontalBlock"] > [data-testid="stColumn"]:not(:first-child) [data-testid="stVerticalBlock"],
-        section[data-testid="stSidebar"] [data-testid="stHorizontalBlock"] > [data-testid="stColumn"]:not(:first-child) [data-testid="stElementContainer"],
-        section[data-testid="stSidebar"] [data-testid="stHorizontalBlock"] > [data-testid="stColumn"]:not(:first-child) [data-testid="stDownloadButton"],
-        section[data-testid="stSidebar"] [data-testid="stHorizontalBlock"] > [data-testid="stColumn"]:not(:first-child) button {
-            width: 32px !important;
-            height: 32px !important;
-            min-width: 32px !important;
-            max-width: 32px !important;
-            min-height: 32px !important;
-            max-height: 32px !important;
-            padding: 0 !important;
+        section[data-testid="stSidebar"] [data-testid="stPopover"] button {
+            width: 34px !important;
+            height: 34px !important;
+            min-width: 34px !important;
+            min-height: 34px !important;
         }
 
         /* penyesuaian wadah chat input di mobile */
@@ -732,69 +609,6 @@ def apply_custom_css():
     .skeleton-bar.w-full { width: 92%; }
     .skeleton-bar.w-3-4 { width: 72%; }
     .skeleton-bar.w-1-2 { width: 42%; }
-
-    /* kotak info */
-    .callout {
-        border-radius: 12px;
-        padding: 12px 14px;
-        margin: 8px 0;
-        font-size: 13px;
-        line-height: 1.5;
-        display: flex;
-        align-items: flex-start;
-        gap: 10px;
-        max-width: 100% !important;
-        box-sizing: border-box !important;
-        overflow-wrap: break-word !important;
-        word-break: break-word !important;
-        animation: fadeInUp 0.3s ease;
-    }
-    .callout-icon {
-        flex-shrink: 0;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        width: 26px;
-        height: 26px;
-        border-radius: 7px;
-    }
-    .callout-content {
-        flex: 1;
-        min-width: 0 !important;
-        overflow-wrap: break-word !important;
-        word-break: break-word !important;
-    }
-    .callout code {
-        word-break: break-all !important;
-        white-space: pre-wrap !important;
-        max-width: 100% !important;
-        font-size: 11.5px !important;
-        border-radius: 6px !important;
-        padding: 4px 6px !important;
-    }
-    .callout-title {
-        font-weight: 600;
-        margin-bottom: 2px;
-        font-size: 13px;
-    }
-    .callout-tip {
-        background: #f0fdf4;
-        border: 1px solid #bbf7d0;
-        color: #166534;
-    }
-    .callout-tip .callout-icon { background: #dcfce7; color: #16a34a; }
-    .callout-warning {
-        background: #fffbeb;
-        border: 1px solid #fde68a;
-        color: #92400e;
-    }
-    .callout-warning .callout-icon { background: #fef3c7; color: #d97706; }
-    .callout-info {
-        background: #f0f9ff;
-        border: 1px solid #bae6fd;
-        color: #075985;
-    }
-    .callout-info .callout-icon { background: #e0f2fe; color: #0284c7; }
 
     /* wadah chat input iframe embed dengan latar belakang blur frosted glass */
     [data-testid="stBottom"] {
