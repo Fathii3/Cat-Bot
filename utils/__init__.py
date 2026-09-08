@@ -14,6 +14,8 @@ from .session_manager import (
 )
 from .gemini_manager import (
     CANDIDATE_MODELS,
+    GENAI_AVAILABLE,
+    GENAI_ERROR,
     load_gemini_keys,
     init_gemini_state,
     generate_fetty_response,
@@ -40,6 +42,8 @@ __all__ = [
     "delete_session",
     "export_session_txt",
     "CANDIDATE_MODELS",
+    "GENAI_AVAILABLE",
+    "GENAI_ERROR",
     "load_gemini_keys",
     "init_gemini_state",
     "generate_fetty_response",

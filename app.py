@@ -11,6 +11,8 @@ from components import (
     render_quick_pills,
 )
 from utils import (
+    GENAI_AVAILABLE,
+    GENAI_ERROR,
     get_default_messages,
     sync_initial_greeting,
     init_session_state,
@@ -45,6 +47,16 @@ st.set_page_config(
 apply_custom_css()
 
 # inisialisasi state
+if not GENAI_AVAILABLE:
+    st.error(
+        f"**Modul AI (`google-genai`) belum siap di server:** `{GENAI_ERROR}`\n\n"
+        "**Cara Memperbaiki di Streamlit Cloud:**\n"
+        "1. Masuk ke dashboard Streamlit Cloud -> klik **Manage app** (kanan bawah).\n"
+        "2. Masuk ke **Settings** > **General** > pastikan **Python version** diatur ke **3.10** atau **3.11** (karena `google-genai` butuh Python >= 3.10).\n"
+        "3. Klik ikon titik tiga ⋮ pada menu Manage app lalu pilih **Rebuild with clear cache**."
+    )
+    st.stop()
+
 api_keys = load_gemini_keys()
 if not api_keys:
     st.error("API key Gemini belum diatur di .streamlit/secrets.toml")

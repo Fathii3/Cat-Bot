@@ -1,7 +1,17 @@
+from __future__ import annotations
 import time
 import streamlit as st
-from google import genai
-from google.genai import types
+
+try:
+    from google import genai
+    from google.genai import types
+    GENAI_AVAILABLE = True
+    GENAI_ERROR = None
+except Exception as e:
+    genai = None
+    types = None
+    GENAI_AVAILABLE = False
+    GENAI_ERROR = e
 
 # daftar model gemini
 CANDIDATE_MODELS = [
@@ -52,8 +62,10 @@ def init_gemini_state(api_keys: list[str]):
     if "key_cooldowns" not in st.session_state:
         st.session_state.key_cooldowns = {}
 
-def get_client_for_key(api_keys: list[str], idx: int) -> genai.Client:
+def get_client_for_key(api_keys: list[str], idx: int) -> genai.Client | None:
     """ambil atau buat client gemini."""
+    if not GENAI_AVAILABLE or genai is None:
+        return None
     if idx not in st.session_state.gemini_clients:
         st.session_state.gemini_clients[idx] = genai.Client(api_key=api_keys[idx])
     return st.session_state.gemini_clients[idx]
@@ -208,6 +220,8 @@ def generate_fetty_response(
     is_en: bool = True
 ) -> tuple[str | None, Exception | None]:
     """kirim chat ke gemini dengan rotasi key dan model cadangan."""
+    if not GENAI_AVAILABLE or types is None:
+        return None, (GENAI_ERROR or Exception("Google GenAI library not available"))
     system_instruction = build_system_instruction(portfolio_context, is_en=is_en)
     chat_config = types.GenerateContentConfig(
         system_instruction=system_instruction,
