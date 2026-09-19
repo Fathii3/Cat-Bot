@@ -297,4 +297,8 @@ with st.container(key="chat_scroll_container", height=540, border=False, autoscr
         messages.append({"role": "assistant", "content": reply})
 
     # Spacer bawah di akhir kontainer agar pesan terbawah tidak pernah terpotong oleh input melayang
-    st.markdown('<div class="chat-bottom-spacer">&nbsp;</div>', unsafe_allow_html=True)
+    st.markdown(
+        '<div class="chat-bottom-spacer" style="height: 140px; min-height: 140px; width: 100%; display: block;">&nbsp;</div>',
+        unsafe_allow_html=True
+    )
+

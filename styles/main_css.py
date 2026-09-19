@@ -5,10 +5,10 @@ def apply_custom_css():
     st.markdown("""
 <style>
     /*
-     * Layout seperti ChatGPT/Gemini/Claude:
-     * - Seluruh halaman scroll (block-container)
-     * - Chat input fixed melayang di bawah viewport
-     * - Padding-bottom di chat area supaya konten tidak ketutup input
+     * Layout modern responsif ala Gemini / ChatGPT:
+     * - Viewport dikunci tanpa double scrollbar
+     * - Wadah chat (chat_scroll_container) adalah satu-satunya area scroll
+     * - Chat input fixed melayang di bawah viewport dengan proteksi rongga bawah
      */
     html, body, #root, .withScreencast, .stApp {
         height: 100% !important;
@@ -25,36 +25,92 @@ def apply_custom_css():
     section[data-testid="stMain"],
     section.main, .stMain {
         height: 100% !important;
-        overflow-y: auto !important;
-        overflow-x: hidden !important;
+        overflow: hidden !important;
     }
 
-    /* biarkan Streamlit internal container flow natural */
+    /* biarkan Streamlit internal container flow natural tanpa scroll ekstra */
     [data-testid="stAppScrollToBottomContainer"] {
         overflow: visible !important;
     }
 
-    /* area chat — scroll natural, padding bawah cukup supaya tidak ketutup chat input */
+    /* area chat utama — kunci agar tidak menghasilkan scrollbar ganda */
     .block-container {
-        overflow: visible !important;
-        padding-top: 1rem !important;
-        padding-bottom: 100px !important;
+        overflow: hidden !important;
+        padding-top: 0.5rem !important;
+        padding-bottom: 0 !important;
         padding-left: 1rem !important;
         padding-right: 1rem !important;
         max-width: 100% !important;
     }
 
-    /* chat input FIXED melayang di bawah viewport — seperti Gemini/ChatGPT */
+    /* wadah percakapan chat responsif mengikuti tinggi viewport penuh */
+    div.st-key-chat_scroll_container,
+    div.st-key-chat_scroll_container [data-testid="stVerticalBlockBorderWrapper"],
+    [data-testid="stVerticalBlockBorderWrapper"]:has(.chat-bottom-spacer) {
+        height: calc(100dvh - 82px) !important;
+        height: calc(100vh - 82px) !important;
+        max-height: calc(100dvh - 82px) !important;
+        overflow-y: auto !important;
+        overflow-x: hidden !important;
+        -webkit-overflow-scrolling: touch !important;
+        overscroll-behavior-y: contain !important;
+        scroll-behavior: smooth !important;
+    }
+
+    /* Scrollbar modern, tipis, dan mulus */
+    ::-webkit-scrollbar {
+        width: 6px !important;
+        height: 6px !important;
+    }
+    ::-webkit-scrollbar-track {
+        background: transparent !important;
+    }
+    ::-webkit-scrollbar-thumb {
+        background: rgba(148, 163, 184, 0.4) !important;
+        border-radius: 999px !important;
+        transition: background 0.2s ease !important;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+        background: rgba(100, 116, 139, 0.65) !important;
+    }
+    * {
+        scrollbar-width: thin !important;
+        scrollbar-color: rgba(148, 163, 184, 0.4) transparent !important;
+    }
+
+    /* Rongga kosong di bawah agar scroll nampak jelas dan pesan terbawah tidak tertutup */
+    .chat-bottom-spacer {
+        display: block !important;
+        width: 100% !important;
+        height: 140px !important;
+        min-height: 140px !important;
+        clear: both !important;
+        pointer-events: none !important;
+        visibility: hidden !important;
+    }
+    [data-testid="stElementContainer"]:has(.chat-bottom-spacer) {
+        min-height: 140px !important;
+        height: 140px !important;
+        margin: 0 !important;
+        padding: 0 !important;
+    }
+
+    /* chat input FIXED melayang di bawah viewport */
     [data-testid="stBottom"] {
         position: fixed !important;
         bottom: 0 !important;
         left: 0 !important;
         right: 0 !important;
-        background: linear-gradient(to bottom, rgba(255,255,255,0) 0%, #ffffff 15%, #ffffff 100%) !important;
+        background: linear-gradient(to bottom, rgba(255,255,255,0) 0%, rgba(255,255,255,0.92) 20%, #ffffff 100%) !important;
         border-top: none !important;
         box-shadow: none !important;
         padding: 16px 14px 12px 14px !important;
         z-index: 100 !important;
+        pointer-events: none !important;
+    }
+
+    [data-testid="stBottom"] * {
+        pointer-events: auto !important;
     }
 
     [data-testid="stBottom"] > div,
@@ -521,6 +577,24 @@ def apply_custom_css():
             height: 18px !important;
             min-width: 18px !important;
             min-height: 18px !important;
+        }
+
+        /* wadah chat dan rongga bawah di mobile */
+        div.st-key-chat_scroll_container,
+        div.st-key-chat_scroll_container [data-testid="stVerticalBlockBorderWrapper"],
+        [data-testid="stVerticalBlockBorderWrapper"]:has(.chat-bottom-spacer) {
+            height: calc(100dvh - 72px) !important;
+            height: calc(100vh - 72px) !important;
+            max-height: calc(100dvh - 72px) !important;
+        }
+
+        .chat-bottom-spacer {
+            height: 135px !important;
+            min-height: 135px !important;
+        }
+        [data-testid="stElementContainer"]:has(.chat-bottom-spacer) {
+            min-height: 135px !important;
+            height: 135px !important;
         }
     }
 
