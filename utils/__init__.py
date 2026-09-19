@@ -29,6 +29,7 @@ from .rate_limiter import (
     get_rate_limit_info,
     record_question,
     render_rate_limit_badge,
+    get_rate_limit_caption,
 )
 
 __all__ = [
@@ -57,4 +58,5 @@ __all__ = [
     "get_rate_limit_info",
     "record_question",
     "render_rate_limit_badge",
+    "get_rate_limit_caption",
 ]

@@ -41,3 +41,104 @@ def render_quick_pills(is_en: bool = True):
         key="quick_pill_selection",
         on_change=on_pill_change
     )
+
+HERO_PROMPT_CARDS_EN = [
+    {
+        "icon": "📁",
+        "title": "Featured Projects",
+        "desc": "Key production apps & full-stack systems",
+        "prompt": QUICK_TOPICS_EN["📁 Featured Projects"],
+    },
+    {
+        "icon": "⚡",
+        "title": "Tech Stack & Skills",
+        "desc": "Flutter, Next.js, Python, TypeScript & Cloud",
+        "prompt": QUICK_TOPICS_EN["⚡ Tech Stack"],
+    },
+    {
+        "icon": "🚀",
+        "title": "Dev Workflow",
+        "desc": "From concept to production-ready product",
+        "prompt": QUICK_TOPICS_EN["🚀 Workflow"],
+    },
+    {
+        "icon": "📜",
+        "title": "Certifications",
+        "desc": "Professional licenses & verified credentials",
+        "prompt": QUICK_TOPICS_EN["📜 Certifications"],
+    },
+    {
+        "icon": "💼",
+        "title": "Work Experience",
+        "desc": "Engineering journey & professional background",
+        "prompt": QUICK_TOPICS_EN["💼 Experience"],
+    },
+    {
+        "icon": "🌐",
+        "title": "Connect & Links",
+        "desc": "Official social links & collaboration",
+        "prompt": QUICK_TOPICS_EN["🌐 Connect"],
+    },
+]
+
+HERO_PROMPT_CARDS_ID = [
+    {
+        "icon": "📁",
+        "title": "Projek Unggulan",
+        "desc": "Sistem produksi & aplikasi full-stack",
+        "prompt": QUICK_TOPICS_ID["📁 Projek Unggulan"],
+    },
+    {
+        "icon": "⚡",
+        "title": "Tech Stack & Keahlian",
+        "desc": "Flutter, Next.js, Python, TypeScript & Cloud",
+        "prompt": QUICK_TOPICS_ID["⚡ Tech Stack"],
+    },
+    {
+        "icon": "🚀",
+        "title": "Alur Kerja Dev",
+        "desc": "Dari rancangan arsitektur hingga rilis",
+        "prompt": QUICK_TOPICS_ID["🚀 Alur Kerja"],
+    },
+    {
+        "icon": "📜",
+        "title": "Sertifikasi & Lisensi",
+        "desc": "Lisensi profesional & kredensial terverifikasi",
+        "prompt": QUICK_TOPICS_ID["📜 Sertifikasi"],
+    },
+    {
+        "icon": "💼",
+        "title": "Pengalaman Kerja",
+        "desc": "Riwayat karir & pencapaian profesional",
+        "prompt": QUICK_TOPICS_ID["💼 Pengalaman"],
+    },
+    {
+        "icon": "🌐",
+        "title": "Kontak & Jejaring",
+        "desc": "Tautan media sosial & tawaran kolaborasi",
+        "prompt": QUICK_TOPICS_ID["🌐 Kontak"],
+    },
+]
+
+def render_hero_prompt_cards(is_en: bool = True):
+    """Tampilkan kartu saran topik ala Google Gemini di bawah welcome hero."""
+    cards = HERO_PROMPT_CARDS_EN if is_en else HERO_PROMPT_CARDS_ID
+
+    st.markdown('<div class="hero-prompt-grid">', unsafe_allow_html=True)
+    cols = st.columns(2)
+    for idx, card in enumerate(cards):
+        col = cols[idx % 2]
+        with col:
+            btn_label = f"{card['icon']}  **{card['title']}**\n\n{card['desc']}"
+            if st.button(
+                btn_label,
+                key=f"hero_card_{idx}",
+                use_container_width=True,
+                help=card["prompt"],
+            ):
+                st.session_state["pending_pill_prompt"] = card["prompt"]
+                st.rerun()
+    st.markdown('</div>', unsafe_allow_html=True)
+
+
+

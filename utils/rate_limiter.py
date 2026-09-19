@@ -205,3 +205,15 @@ def render_rate_limit_badge(info: dict, is_en: bool = True):
             """,
             unsafe_allow_html=True,
         )
+
+
+def get_rate_limit_caption(info: dict, is_en: bool = True) -> str:
+    """keterangan ringkas kuota harian dan cooldown."""
+    remaining = info.get("remaining_questions", DAILY_LIMIT)
+    limit = info.get("limit", DAILY_LIMIT)
+    return (
+        f"Daily quota: {remaining}/{limit} questions"
+        if is_en
+        else f"Kuota harian: {remaining}/{limit} pertanyaan"
+    )
+

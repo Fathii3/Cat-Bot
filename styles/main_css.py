@@ -650,6 +650,107 @@ def apply_custom_css():
     .skeleton-bar.w-3-4 { width: 72%; }
     .skeleton-bar.w-1-2 { width: 42%; }
 
+    /* tampilan welcome hero ala Gemini */
+    .welcome-hero {
+        text-align: center;
+        padding: 28px 12px 18px 12px;
+        animation: fadeIn 0.4s ease;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        max-width: 620px;
+        margin: 0 auto;
+    }
+    .hero-avatar-wrap {
+        position: relative;
+        width: 66px;
+        height: 66px;
+        margin: 0 auto 14px auto;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    .hero-avatar-glow {
+        position: absolute;
+        inset: -4px;
+        border-radius: 50%;
+        background: radial-gradient(circle, rgba(16, 185, 129, 0.35) 0%, rgba(5, 150, 105, 0.05) 70%, transparent 100%);
+        animation: dotPulse 3s ease-in-out infinite;
+        filter: blur(8px);
+    }
+    .hero-avatar {
+        position: relative;
+        width: 60px;
+        height: 60px;
+        border-radius: 18px;
+        background: linear-gradient(135deg, #059669 0%, #10b981 100%);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        box-shadow: 0 8px 24px rgba(5, 150, 105, 0.28);
+        color: #ffffff;
+    }
+    .hero-avatar svg {
+        width: 32px !important;
+        height: 32px !important;
+        stroke: #ffffff !important;
+        fill: none !important;
+        stroke-width: 2 !important;
+    }
+    .hero-title {
+        font-size: 21px !important;
+        font-weight: 700 !important;
+        color: #0f172a !important;
+        margin: 0 0 8px 0 !important;
+        line-height: 1.35 !important;
+        text-align: center !important;
+    }
+    .hero-subtitle {
+        font-size: 13px !important;
+        color: #64748b !important;
+        line-height: 1.55 !important;
+        margin: 0 0 12px 0 !important;
+        max-width: 520px;
+        text-align: center !important;
+    }
+
+    /* kartu prompt hero ala Gemini */
+    .hero-prompt-grid {
+        width: 100%;
+        max-width: 620px;
+        margin: 0 auto 12px auto;
+    }
+    .hero-prompt-grid button {
+        height: auto !important;
+        min-height: 68px !important;
+        padding: 10px 14px !important;
+        text-align: left !important;
+        white-space: normal !important;
+        border-radius: 12px !important;
+        border: 1px solid #e2e8f0 !important;
+        background: #ffffff !important;
+        box-shadow: 0 1px 4px rgba(0, 0, 0, 0.03) !important;
+        transition: all 0.2s cubic-bezier(0.22, 1, 0.36, 1) !important;
+    }
+    .hero-prompt-grid button:hover {
+        border-color: #10b981 !important;
+        background: #f0fdf4 !important;
+        transform: translateY(-2px) !important;
+        box-shadow: 0 4px 14px rgba(5, 150, 105, 0.12) !important;
+    }
+    .hero-prompt-grid button p {
+        text-align: left !important;
+        font-size: 12.5px !important;
+        line-height: 1.4 !important;
+        color: #334155 !important;
+        margin: 0 !important;
+    }
+    .hero-prompt-grid button strong {
+        color: #0f172a !important;
+        font-weight: 600 !important;
+    }
+
     /* kolom input chat */
     [data-testid="stChatInput"] {
         border-radius: 20px !important;
