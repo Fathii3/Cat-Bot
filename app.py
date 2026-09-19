@@ -84,7 +84,18 @@ with st.sidebar:
         label_visibility="collapsed",
         key="app_lang",
     )
-    is_en = (lang_choice or default_lang) != "Indonesia"
+    current_lang = lang_choice or st.session_state.get("prev_lang") or default_lang
+    is_en = current_lang != "Indonesia"
+
+    # notifikasi pergantian bahasa
+    if "prev_lang" in st.session_state and st.session_state["prev_lang"] != current_lang:
+        toast_msg = (
+            "Language changed to English 🇬🇧"
+            if is_en
+            else "Bahasa berhasil diubah ke Indonesia 🇮🇩"
+        )
+        st.toast(toast_msg, icon=":material/translate:")
+    st.session_state["prev_lang"] = current_lang
 
     # perbarui pesan pembuka sesi aktif jika user belum mengirim pesan
     active_session = get_active_session()

@@ -1,5 +1,5 @@
 """modul pembatasan frekuensi pesan (rate limiting) dan anti-spam berbasis ip."""
-from datetime import date
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 import json
 import threading
@@ -7,12 +7,18 @@ import time
 import streamlit as st
 from components.icons import ICON
 
+WIB = timezone(timedelta(hours=7))
 DAILY_LIMIT = 5
 COOLDOWN_SECONDS = 30
 DATA_DIR = Path(__file__).resolve().parent.parent / "data"
 DATA_FILE = DATA_DIR / "rate_limit.json"
 
 _file_lock = threading.Lock()
+
+
+def _get_today_wib() -> str:
+    """tanggal hari ini berdasarkan zona waktu indonesia (WIB / UTC+7)."""
+    return datetime.now(WIB).date().isoformat()
 
 
 def get_client_ip() -> str:
@@ -68,7 +74,7 @@ def _save_all_records(data: dict):
 
 def get_rate_limit_info(ip: str) -> dict:
     """periksa status batas harian dan jeda cooldown untuk ip tertentu."""
-    today_str = date.today().isoformat()
+    today_str = _get_today_wib()
     records = _load_all_records()
     user_record = records.get(ip, {})
 
@@ -113,7 +119,7 @@ def get_rate_limit_info(ip: str) -> dict:
 
 def record_question(ip: str):
     """catat pertanyaan baru: tambahkan hitungan hari ini dan perbarui timestamp terakhir."""
-    today_str = date.today().isoformat()
+    today_str = _get_today_wib()
     records = _load_all_records()
     user_record = records.get(ip, {})
 

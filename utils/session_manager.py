@@ -1,5 +1,11 @@
-from datetime import datetime
+from datetime import datetime, timedelta, timezone
 import streamlit as st
+
+WIB = timezone(timedelta(hours=7))
+
+def get_now_wib_str() -> str:
+    """ambil waktu saat ini dalam format WIB."""
+    return f"{datetime.now(WIB).strftime('%d/%m %H:%M')} WIB"
 
 def get_default_messages(is_en: bool = True) -> list:
     """ambil pesan pembuka sesuai bahasa (gaya natural tech companion)."""
@@ -17,6 +23,8 @@ def sync_initial_greeting(session: dict, is_en: bool):
     msgs = session.get("messages", [])
     if len(msgs) == 1 and msgs[0].get("role") == "assistant":
         msgs[0]["content"] = get_default_messages(is_en)[0]["content"]
+        if session.get("title") in ("New Chat", "Chat Baru"):
+            session["title"] = "New Chat" if is_en else "Chat Baru"
 
 def init_session_state(is_en: bool = True):
     """inisialisasi riwayat chat di memori sesi."""
@@ -26,7 +34,7 @@ def init_session_state(is_en: bool = True):
             first_id: {
                 "title": "New Chat" if is_en else "Chat Baru",
                 "messages": get_default_messages(is_en),
-                "created": datetime.now().strftime("%d/%m %H:%M")
+                "created": get_now_wib_str()
             }
         }
         st.session_state.active_session = first_id
@@ -59,7 +67,7 @@ def create_new_session(is_en: bool = True) -> str:
     st.session_state.sessions[new_id] = {
         "title": "New Chat" if is_en else "Chat Baru",
         "messages": get_default_messages(is_en),
-        "created": datetime.now().strftime("%d/%m %H:%M")
+        "created": get_now_wib_str()
     }
     st.session_state.active_session = new_id
     return new_id
