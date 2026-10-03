@@ -184,6 +184,6 @@ Website: https://fathifadhil.me
 Email: fathifadhil10@gmail.com
 WhatsApp: +6282241211466
 GitHub: https://github.com/Fathii3
-LinkedIn: https://www.linkedin.com/in/fathi-fadhil-45063320a
+LinkedIn: https://www.linkedin.com/in/fathi-fadhil
 """
 

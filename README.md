@@ -1,4 +1,4 @@
-# Fetty Assistant - AI Portfolio Companion
+﻿# Fetty Assistant - AI Portfolio Companion
 
 Fetty Assistant adalah bot asisten portofolio interaktif berbasis kecerdasan buatan (Google Gemini) yang dibuat dengan Streamlit. Bot ini dirancang sebagai asisten virtual cerdas untuk menjawab berbagai pertanyaan seputar proyek, pengalaman kerja, sertifikasi, keahlian teknis, dan kontak dari Fathi Fadhil secara ramah dan profesional.
 
@@ -46,8 +46,8 @@ Fetty Assistant adalah bot asisten portofolio interaktif berbasis kecerdasan bua
 
 | Komponen | Teknologi | Keterangan |
 | :--- | :--- | :--- |
-| Bahasa Utama | Python 3.10+ | Bahasa pemrograman backend & UI |
-| Framework Web | Streamlit | Framework aplikasi data dan antarmuka interaktif |
+| Bahasa Utama | Python 3.13 | Python sistem + venv lokal (.venv) |
+| Framework Web | Streamlit 1.65 | Framework aplikasi data dan antarmuka interaktif |
 | Mesin AI | Google GenAI SDK | SDK resmi Google Gemini (google-genai) |
 | Model AI | Gemini Flash Family | gemini-3.1-flash-lite, gemini-3.5-flash-lite |
 | Knowledge Base | In-Memory RAG Context | Basis pengetahuan terstruktur di knowledge/portfolio_data.py |
@@ -60,85 +60,107 @@ Fetty Assistant adalah bot asisten portofolio interaktif berbasis kecerdasan bua
 
 ```text
 Chat-bot/
-├── .streamlit/
-│   ├── config.toml            # konfigurasi tema dan toolbar streamlit
-│   └── secrets.toml           # tempat menyimpan api key gemini (lokal)
-├── assets/
-│   ├── fetty_avatar.svg       # avatar maskot fetty
-│   └── user_avatar.svg        # avatar pengunjung
-├── components/
-│   ├── __init__.py            # ekspor komponen
-│   ├── icons.py               # kamus svg ikon lucide
-│   ├── shortcuts.py           # widget pintasan topik (st.pills)
-│   └── ui.py                  # skeleton loading, callout, navbar, & brand
-├── knowledge/
-│   ├── __init__.py
-│   └── portfolio_data.py      # sumber data keahlian, proyek, dan cv developer
-├── styles/
-│   ├── __init__.py
-│   └── main_css.py            # styling antarmuka dan tema responsif
-├── utils/
-│   ├── __init__.py
-│   ├── gemini_manager.py      # manajemen api key, rotasi, cooldown, & prompt ai
-│   └── session_manager.py     # manajemen sesi dan histori percakapan
-├── app.py                     # alur utama aplikasi streamlit
-├── requirements.txt           # daftar pustaka python
-└── README.md                  # dokumentasi proyek
+  .streamlit/
+    config.toml            # konfigurasi tema dan toolbar streamlit
+    secrets.toml           # tempat menyimpan api key gemini (lokal, di-gitignore)
+  assets/
+    fetty_avatar.svg       # avatar maskot fetty
+    user_avatar.svg        # avatar pengunjung
+  components/
+    __init__.py            # ekspor komponen
+    icons.py               # kamus svg ikon lucide
+    shortcuts.py           # widget pintasan topik (st.pills)
+    ui.py                  # skeleton loading, callout, navbar, & brand
+  knowledge/
+    __init__.py
+    portfolio_data.py      # sumber data keahlian, proyek, dan cv developer
+  styles/
+    __init__.py
+    main_css.py            # styling antarmuka dan tema responsif
+  utils/
+    __init__.py
+    gemini_manager.py      # manajemen api key, rotasi, cooldown, & prompt ai
+    session_manager.py     # manajemen sesi dan histori percakapan (+ rate limiter)
+  app.py                     # alur utama aplikasi streamlit
+  requirements.txt           # daftar pustaka python
+  README.md                  # dokumentasi proyek
 ```
 
 ---
 
 ## Panduan Instalasi & Menjalankan Aplikasi
 
-Ikuti langkah-langkah berikut jika ingin mencoba atau menjalankan repositori ini di komputer lokal Anda:
+Proyek ini memakai **virtual environment** (`.venv`) + **Python sistem 3.13**. Semua perintah di bawah dijalankan dari folder proyek (`D:\VC\Chat-bot`).
 
-### 1. Kloning Repositori
-```bash
-git clone https://github.com/Fathii3/Chat-bot.git
-cd Chat-bot
+### 1. Setup pertama kali (sekali saja)
+
+```powershell
+cd D:\VC\Chat-bot
+C:\Users\MP2NH\AppData\Local\Programs\Python\Python313\python.exe -m venv .venv
+.\.venv\Scripts\python.exe -m pip install --upgrade pip
+.\.venv\Scripts\python.exe -m pip install -r requirements.txt
 ```
 
-### 2. Buat & Aktifkan Virtual Environment (Direkomendasikan)
-- Windows (PowerShell):
-  ```powershell
-  python -m venv .venv
-  .venv\Scripts\Activate.ps1
-  ```
-- macOS / Linux:
-  ```bash
-  python3 -m venv .venv
-  source .venv/bin/activate
-  ```
+### 2. Konfigurasi API Key Gemini (lokal)
 
-### 3. Pasang Dependensi
-```bash
-pip install -r requirements.txt
-```
-
-### 4. Konfigurasi API Key Gemini
-Buat berkas `.streamlit/secrets.toml` di dalam folder proyek Anda:
+Berkas `.streamlit/secrets.toml` sudah ada di lokal (di-gitignore, jangan di-commit):
 
 ```toml
-# Kunci API Gemini (bisa pakai 1 sampai 5 key untuk rotasi otomatis)
-GEMINI_API_KEY_1 = "AIzaSy..."
-# GEMINI_API_KEY_2 = "AIzaSy..."
-# GEMINI_API_KEY_3 = "AIzaSy..."
-# GEMINI_API_KEY_4 = "AIzaSy..."
-# GEMINI_API_KEY_5 = "AIzaSy..."
-
-# Format tunggal (jika hanya memiliki 1 key)
-GEMINI_API_KEY = "AIzaSy..."
+GEMINI_API_KEY_1 = "AQ.Ab8RN6J-..."
+# GEMINI_API_KEY_2 = "AQ.Ab8RN6J-..."
+GEMINI_API_KEY = "AQ.Ab8RN6J-..."
 ```
-Catatan Penting: Jangan pernah mengunggah atau membagikan berkas `secrets.toml` ke repositori publik. Berkas ini sudah diamankan di dalam `.gitignore`.
 
-### 5. Sesuaikan Data Portofolio
-Buka berkas `knowledge/portfolio_data.py`, lalu ubah isi variabel `PORTFOLIO_CONTEXT` sesuai dengan data profil, riwayat kerja, proyek, dan kontak Anda sendiri.
+Tambah sampai 5 key untuk rotasi otomatis. Jangan pernah mengunggah berkas ini ke repositori publik.
 
-### 6. Jalankan Aplikasi
-```bash
+### 3. Jalankan aplikasi (pemakaian harian)
+
+Tanpa aktivasi (paling aman, anti salah interpreter):
+
+```powershell
+cd D:\VC\Chat-bot
+.\.venv\Scripts\python.exe -m streamlit run app.py
+```
+
+Atau dengan aktivasi dulu:
+
+```powershell
+cd D:\VC\Chat-bot
+.\.venv\Scripts\Activate.ps1
 streamlit run app.py
 ```
-Aplikasi akan otomatis terbuka di peramban pada alamat: `http://localhost:8501`.
+
+Aplikasi terbuka di: `http://localhost:8501`.
+
+> Catatan: `streamlit run app.py` polos TANPA venv/aktivasi pasti eror `streamlit is not recognized`. Jangan dipakai.
+
+### 4. Sesuaikan Data Portofolio (opsional)
+
+Buka `knowledge/portfolio_data.py`, ubah isi `PORTFOLIO_CONTEXT` sesuai data profil, riwayat kerja, proyek, dan kontak Anda.
+
+### Troubleshooting
+
+| Gejala | Penyebab & Solusi |
+|---|---|
+| `streamlit is not recognized` | Lupa pakai venv. Pakai `.\.venv\Scripts\python.exe -m streamlit run app.py` atau aktivasi dulu via `.\.venv\Scripts\Activate.ps1`. |
+| `ModuleNotFoundError: No module named 'streamlit'` / `'google.genai'` | `python` polos menunjuk Python sistem yang kosong. Jangan `python app.py`, pakai path `.venv` di atas. |
+| AI tidak merespons / error key | Cek `.streamlit/secrets.toml` ada dan key valid. Di Streamlit Cloud, isi ulang via dashboard: App > Settings > Secrets (file lokal tidak ikut deploy). |
+| Port 8501 terpakai | Jalankan dengan port lain: `.\.venv\Scripts\python.exe -m streamlit run app.py --server.port 8502`. |
+
+---
+
+## Deploy ke Streamlit Cloud (gratis)
+
+Lokal dan Cloud itu lingkungan terpisah. Cloud install sendiri dari `requirements.txt`, jadi hapus Anaconda / bikin `.venv` tidak berpengaruh ke deploy.
+
+1. Push ke GitHub (`.venv/` dan `secrets.toml` otomatis di-ignore).
+2. Di Streamlit Cloud: New app > pilih repo > `app.py`.
+3. Isi Secrets via dashboard (App > Settings > Secrets), contoh:
+```toml
+GEMINI_API_KEY_1 = "AQ.Ab8RN6J-..."
+GEMINI_API_KEY = "AQ.Ab8RN6J-..."
+```
+4. Deploy. Batas paket free: RAM kecil + app sleep saat idle — wajar, bukan error.
 
 ---
 
@@ -154,5 +176,3 @@ Jika Anda memiliki situs web utama (misalnya menggunakan Next.js, React, atau HT
   allow="clipboard-write"
 ></iframe>
 ```
-
-
