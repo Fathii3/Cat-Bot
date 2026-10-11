@@ -1,5 +1,5 @@
-streamlit_app/
-.streamlit/
-.venv/
-__pycache__/
-*.py
+.env*
+.git
+.gitignore
+.devcontainer/
+README.md

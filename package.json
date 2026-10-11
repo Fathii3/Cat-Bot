@@ -4,6 +4,8 @@
   "description": "Serverless Gemini AI Chatbot API for Fathi Fadhil Portfolio",
   "main": "api/chat.ts",
   "scripts": {
+    "dev": "tsx dev-server.ts",
+    "start": "tsx dev-server.ts",
     "build": "tsc --noEmit",
     "test": "node --check api/chat.ts"
   },
@@ -21,8 +23,8 @@
   },
   "devDependencies": {
     "@types/node": "^22.13.9",
-    "@types/react": "^19.3.0",
     "@vercel/node": "^5.1.8",
+    "tsx": "^4.21.0",
     "typescript": "^5.8.2"
   }
 }

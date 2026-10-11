@@ -2,14 +2,14 @@ import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { GoogleGenerativeAI } from '@google/generative-ai';
 import { PORTFOLIO_KNOWLEDGE } from './knowledge';
 
-// Interface untuk item riwayat pesan yang dikirim dari klien
+// Tipe riwayat chat
 export interface ChatHistoryItem {
   role: 'user' | 'model' | 'assistant';
   content?: string;
   text?: string;
 }
 
-// System Instruction persona Cat-Bot (Neko)
+// Instruksi sistem persona bot
 const BASE_SYSTEM_INSTRUCTION = `Kamu adalah Cat-Bot (Neko), maskot asisten portofolio Fathi Fadhil yang ramah, sopan, sedikit jenaka dengan ekspresi kucing ('nyaa~'). Kamu bertugas menjawab pertanyaan pengunjung seputar keahlian, proyek, dan latar belakang Fathi Fadhil.
 
 Pedoman Komunikasi:
@@ -22,7 +22,7 @@ Pedoman Komunikasi:
 ${PORTFOLIO_KNOWLEDGE}
 `;
 
-// Helper untuk menyetel CORS header
+// Header CORS
 function setCorsHeaders(req: VercelRequest, res: VercelResponse) {
   const allowedOrigins = [
     'https://fathifadhil.me',
@@ -33,8 +33,11 @@ function setCorsHeaders(req: VercelRequest, res: VercelResponse) {
   ];
 
   const origin = req.headers.origin as string | undefined;
-  if (origin && (allowedOrigins.includes(origin) || origin.endsWith('.vercel.app'))) {
+  const isAllowed = origin && (allowedOrigins.includes(origin) || origin.endsWith('.fathifadhil.me') || origin.includes('cat-bot'));
+
+  if (isAllowed) {
     res.setHeader('Access-Control-Allow-Origin', origin);
+    res.setHeader('Access-Control-Allow-Credentials', 'true');
   } else {
     res.setHeader('Access-Control-Allow-Origin', '*');
   }
@@ -44,14 +47,12 @@ function setCorsHeaders(req: VercelRequest, res: VercelResponse) {
     'Access-Control-Allow-Headers',
     'Content-Type, Authorization, X-Requested-With'
   );
-  res.setHeader('Access-Control-Allow-Credentials', 'true');
 }
 
-// Helper untuk mengambil seluruh API key dari environment (GEMINI_API_KEY_1..5 atau GEMINI_API_KEY)
+// Daftar API key Gemini
 function getGeminiApiKeys(): string[] {
   const keys: string[] = [];
 
-  // Cek nomor 1 sampai 9
   for (let i = 1; i <= 9; i++) {
     const k = process.env[`GEMINI_API_KEY_${i}`]?.trim();
     if (k && !keys.includes(k)) {
@@ -59,7 +60,6 @@ function getGeminiApiKeys(): string[] {
     }
   }
 
-  // Cek kunci tunggal
   const single = process.env.GEMINI_API_KEY?.trim();
   if (single && !keys.includes(single)) {
     keys.push(single);
@@ -69,15 +69,14 @@ function getGeminiApiKeys(): string[] {
 }
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
-  // 1. Tangani CORS Headers
   setCorsHeaders(req, res);
 
-  // 2. Tangani Preflight OPTIONS Request
+  // Preflight OPTIONS
   if (req.method === 'OPTIONS') {
     return res.status(200).end();
   }
 
-  // 3. Hanya izinkan metode POST
+  // Validasi metode POST
   if (req.method !== 'POST') {
     return res.status(405).json({
       error: 'Method Not Allowed',
@@ -85,7 +84,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     });
   }
 
-  // 4. Verifikasi GEMINI_API_KEY di environment
+  // Verifikasi API key
   const apiKeys = getGeminiApiKeys();
   if (apiKeys.length === 0) {
     console.error('Server Configuration Error: Belum ada GEMINI_API_KEY atau GEMINI_API_KEY_1..5 yang disetel.');
@@ -96,7 +95,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   }
 
   try {
-    // 5. Ekstraksi request body
+    // Validasi input
     const { message, history } = req.body || {};
 
     if (!message || typeof message !== 'string' || !message.trim()) {
@@ -106,9 +105,16 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       });
     }
 
+    if (message.length > 3000) {
+      return res.status(400).json({
+        error: 'Bad Request',
+        message: 'Pesan terlalu panjang (maksimal 3000 karakter).',
+      });
+    }
+
     const userMessage = message.trim();
 
-    // 6. Format Multi-Turn Chat History
+    // Format riwayat chat
     const formattedHistory: Array<{
       role: 'user' | 'model';
       parts: Array<{ text: string }>;
@@ -130,12 +136,12 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       }
     }
 
-    // Pastikan percakapan Gemini dimulai dengan giliran 'user'
+    // Pastikan giliran awal user
     while (formattedHistory.length > 0 && formattedHistory[0].role !== 'user') {
       formattedHistory.shift();
     }
 
-    // 7. Eksekusi obrolan dengan rotasi / failover otomatis antar-API Key
+    // Rotasi API key & model
     let responseText: string | null = null;
     let lastError: any = null;
 
@@ -168,7 +174,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           responseText = result.response.text();
 
           if (responseText) {
-            break; // Berhasil mendapatkan jawaban!
+            break;
           }
         } catch (err: any) {
           lastError = err;
@@ -177,10 +183,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       }
 
       if (responseText) {
-        break; // Berhasil, keluar dari loop key
+        break;
       }
     }
-
 
     if (!responseText) {
       throw lastError || new Error('Semua API key gagal memproses respons.');
@@ -193,9 +198,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   } catch (error: any) {
     console.error('Error saat memproses chat dengan Gemini:', error);
 
-
     const errorMessage = error?.message || 'Terjadi kesalahan internal pada server.';
-    const statusCode = error?.status || 500;
+    const statusCode = typeof error?.status === 'number' && error.status >= 400 && error.status <= 599
+      ? error.status
+      : 500;
 
     return res.status(statusCode).json({
       error: 'AI_GENERATION_FAILED',

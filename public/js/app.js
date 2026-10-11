@@ -1,0 +1,766 @@
+// Sanitasi HTML
+function escapeHtml(str) {
+  return String(str || '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#039;');
+}
+
+// State global
+let isEn = false;
+let sessions = {};
+let activeSessionId = null;
+let isGenerating = false;
+let remainingQuota = 5;
+
+// Data kartu hero
+const HERO_CARDS = {
+  en: [
+    { icon: "📁", title: "Featured Projects", desc: "Key production apps & full-stack systems", prompt: "What are Fathi's most notable engineering projects and what problems did they solve?" },
+    { icon: "⚡", title: "Tech Stack & Skills", desc: "Flutter, Next.js, Python, TypeScript & Cloud", prompt: "What core tech stack and tools does Fathi specialize in?" },
+    { icon: "🚀", title: "Dev Workflow", desc: "From concept to production-ready product", prompt: "How does Fathi take an idea from concept to a production-ready product?" },
+    { icon: "📜", title: "Certifications", desc: "Professional licenses & verified credentials", prompt: "What professional certifications and licenses does Fathi hold?" },
+    { icon: "💼", title: "Work Experience", desc: "Engineering journey & professional background", prompt: "Can you summarize Fathi's work experience and engineering journey?" },
+    { icon: "🌐", title: "Connect & Links", desc: "Official social links & collaboration", prompt: "Where can I find Fathi Fadhil's official social media and contact links?" }
+  ],
+  id: [
+    { icon: "📁", title: "Projek Unggulan", desc: "Sistem produksi & aplikasi full-stack", prompt: "Boleh ceritakan apa saja proyek-proyek unggulan yang pernah dikerjakan oleh Fathi?" },
+    { icon: "⚡", title: "Tech Stack & Keahlian", desc: "Flutter, Next.js, Python, TypeScript & Cloud", prompt: "Teknologi dan tech stack apa saja yang dikuasai oleh Fathi?" },
+    { icon: "🚀", title: "Alur Kerja Dev", desc: "Dari rancangan arsitektur hingga rilis", prompt: "Bagaimana workflow dan metodologi Fathi dari ide hingga menjadi produk?" },
+    { icon: "📜", title: "Sertifikasi", desc: "Lisensi profesional & kredensial terverifikasi", prompt: "Apa saja sertifikasi profesional dan lisensi yang dimiliki oleh Fathi?" },
+    { icon: "💼", title: "Pengalaman Kerja", desc: "Perjalanan rekayasa & latar belakang profesional", prompt: "Bagaimana riwayat pengalaman kerja dan perjalanan profesional Fathi?" },
+    { icon: "🌐", title: "Kontak & Kolaborasi", desc: "Tautan media sosial & kontak resmi", prompt: "Di mana saja tautan media sosial dan kontak resmi Fathi Fadhil untuk terhubung?" }
+  ]
+};
+
+const QUICK_PILLS = {
+  en: ["📁 Projects", "⚡ Tech Stack", "🚀 Workflow", "📜 Certificates", "💼 Experience", "🌐 Connect"],
+  id: ["📁 Projek", "⚡ Tech Stack", "🚀 Alur Kerja", "📜 Sertifikat", "💼 Pengalaman", "🌐 Kontak"]
+};
+
+// Inisialisasi aplikasi
+function initApp() {
+  // Kuota harian
+  try {
+    const today = new Date().toISOString().slice(0, 10);
+    const quotaRecord = JSON.parse(localStorage.getItem('fetty_quota') || '{}');
+    if (quotaRecord.date === today) {
+      remainingQuota = quotaRecord.remaining !== undefined ? quotaRecord.remaining : 5;
+    } else {
+      remainingQuota = 5;
+      localStorage.setItem('fetty_quota', JSON.stringify({ date: today, remaining: 5 }));
+    }
+  } catch (e) {
+    console.warn("Storage quota error:", e);
+    remainingQuota = 5;
+  }
+
+  // Riwayat chat lokal
+  try {
+    const savedSessions = JSON.parse(localStorage.getItem('fetty_sessions') || '{}');
+    const savedActiveId = localStorage.getItem('fetty_active_session_id');
+    if (savedSessions && Object.keys(savedSessions).length > 0) {
+      sessions = savedSessions;
+      if (savedActiveId && sessions[savedActiveId]) {
+        activeSessionId = savedActiveId;
+      } else {
+        activeSessionId = Object.keys(sessions)[0];
+      }
+    } else {
+      createNewChat(false);
+    }
+  } catch (e) {
+    console.warn("Storage sessions error:", e);
+    createNewChat(false);
+  }
+
+  // Parameter bahasa URL
+  const params = new URLSearchParams(window.location.search);
+  if (params.get('lang') === 'en') {
+    isEn = true;
+  }
+
+  updateLanguageUI();
+  renderSessionsList();
+  renderActiveSession();
+  updateQuotaUI();
+  initSlideDeleteEvents();
+  initSpeechRecognition();
+
+  // Toggle sidebar
+  const sidebar = document.getElementById('sidebar');
+  const overlay = document.getElementById('sidebar-overlay');
+  const toggleBtn = document.getElementById('btn-toggle-sidebar');
+
+  window.closeMobileSidebar = function() {
+    sidebar.classList.remove('open');
+    overlay.classList.remove('active');
+  };
+
+  window.openMobileSidebar = function() {
+    sidebar.classList.add('open');
+    overlay.classList.add('active');
+  };
+
+  toggleBtn.addEventListener('click', () => {
+    if (window.innerWidth <= 768) {
+      if (sidebar.classList.contains('open')) {
+        window.closeMobileSidebar();
+      } else {
+        window.openMobileSidebar();
+      }
+    } else {
+      sidebar.classList.toggle('collapsed');
+    }
+  });
+
+  overlay.addEventListener('click', window.closeMobileSidebar);
+
+  window.addEventListener('resize', () => {
+    updateLanguageUI();
+    if (window.innerWidth > 768) {
+      overlay.classList.remove('active');
+      sidebar.classList.remove('open');
+    }
+  });
+}
+
+// Notifikasi toast
+function showToast(msg, duration = 2800) {
+  const container = document.getElementById('toast-container');
+  if (!container) return;
+  const toast = document.createElement('div');
+  toast.className = 'toast-msg';
+  toast.innerHTML = `<span>💬</span><span>${escapeHtml(msg)}</span>`;
+  container.appendChild(toast);
+  setTimeout(() => {
+    toast.style.opacity = '0';
+    toast.style.transform = 'translateY(-10px)';
+    toast.style.transition = 'all 0.25s ease';
+    setTimeout(() => toast.remove(), 250);
+  }, duration);
+}
+
+// Kuota & bahasa
+function updateQuotaUI() {
+  const qText = `${remainingQuota}/5`;
+  document.getElementById('nav-quota-badge').textContent = `🐾 ${qText}`;
+  const totalSess = Object.keys(sessions).length;
+  document.getElementById('sidebar-quota-text').textContent = isEn
+    ? `${totalSess} chats saved • Quota: ${qText}`
+    : `${totalSess} chat tersimpan • Kuota: ${qText}`;
+
+  const input = document.getElementById('chat-input');
+  if (remainingQuota <= 0) {
+    input.disabled = true;
+    input.placeholder = isEn ? "Daily quota reached (5/5 today)" : "Batas kuota harian habis (5/5 hari ini)";
+  }
+}
+
+function recordQuestionUsage() {
+  const today = new Date().toISOString().slice(0, 10);
+  remainingQuota = Math.max(0, remainingQuota - 1);
+  try {
+    localStorage.setItem('fetty_quota', JSON.stringify({ date: today, remaining: remainingQuota }));
+  } catch (e) {}
+  updateQuotaUI();
+}
+
+function setLanguage(toEn) {
+  isEn = toEn;
+  updateLanguageUI();
+  renderHeroCards();
+  renderQuickPills();
+  updateQuotaUI();
+  resetSlideState();
+}
+
+function updateLanguageUI() {
+  document.getElementById('lang-en').classList.toggle('active', isEn);
+  document.getElementById('lang-id').classList.toggle('active', !isEn);
+  document.getElementById('txt-new-chat').textContent = isEn ? "New Chat" : "Chat Baru";
+  document.getElementById('txt-history-title').textContent = isEn ? "Chat History" : "Riwayat Percakapan";
+  document.getElementById('hero-title').textContent = isEn
+    ? "How can Fetty help with Fathi's work today?"
+    : "Ada yang ingin kamu tanyakan seputar Fathi Fadhil?";
+  document.getElementById('hero-subtitle').textContent = isEn
+    ? "Interactive AI companion for Fathi Fadhil's engineering portfolio. Ask about featured projects, full-stack tech stack, dev workflow, or work experience!"
+    : "Asisten AI resmi portofolio Fathi Fadhil. Cari tahu seputar proyek unggulan, tech stack, alur pengembangan sistem, hingga pengalaman kerja!";
+  document.getElementById('txt-thinking-label').textContent = isEn ? "Fetty is thinking..." : "Fetty lagi mikir...";
+
+  const txtBtnDl = document.getElementById('txt-btn-download');
+  if (txtBtnDl) txtBtnDl.textContent = isEn ? "Download .txt" : "Unduh .txt";
+  const txtBtnDel = document.getElementById('txt-btn-delete');
+  if (txtBtnDel) txtBtnDel.textContent = isEn ? "Delete" : "Hapus";
+  const txtSlide = document.getElementById('txt-slide-label');
+  if (txtSlide) txtSlide.textContent = isEn ? "Swipe right to delete chat" : "Geser ke kanan untuk hapus chat";
+
+  const input = document.getElementById('chat-input');
+  if (remainingQuota > 0 && !isListeningSpeech) {
+    if (window.innerWidth <= 640) {
+      input.placeholder = isEn ? "Ask Fetty anything... 🐾" : "Tanya seputar Fathi... 🐾";
+    } else {
+      input.placeholder = isEn ? "Ask anything about Fathi's projects, tech stack..." : "Ketik pertanyaan kamu seputar portofolio Fathi...";
+    }
+  }
+
+  renderHeroCards();
+  renderQuickPills();
+}
+
+// Render hero & kartu pintas
+function renderHeroCards() {
+  const container = document.getElementById('hero-cards-container');
+  container.innerHTML = '';
+  const cards = isEn ? HERO_CARDS.en : HERO_CARDS.id;
+  cards.forEach(c => {
+    const div = document.createElement('div');
+    div.className = 'hero-card';
+    div.innerHTML = `
+      <div class="hero-card-icon">${c.icon}</div>
+      <div class="hero-card-title">${c.title}</div>
+      <div class="hero-card-desc">${c.desc}</div>
+    `;
+    div.onclick = () => sendUserMessage(c.prompt);
+    container.appendChild(div);
+  });
+}
+
+function renderQuickPills() {
+  const container = document.getElementById('quick-pills-container');
+  container.innerHTML = '';
+  const pills = isEn ? QUICK_PILLS.en : QUICK_PILLS.id;
+  const cards = isEn ? HERO_CARDS.en : HERO_CARDS.id;
+  pills.forEach((p, idx) => {
+    const btn = document.createElement('button');
+    btn.className = 'quick-pill';
+    btn.textContent = p;
+    btn.onclick = () => sendUserMessage(cards[idx].prompt);
+    container.appendChild(btn);
+  });
+}
+
+// Kelola sesi chat
+function createNewChat(switchNow = true) {
+  if (typeof window.closeMobileSidebar === 'function') {
+    window.closeMobileSidebar();
+  }
+  const id = 'sess_' + Date.now();
+  const defaultTitle = isEn ? "New Chat" : "Chat Baru";
+  sessions[id] = {
+    id,
+    title: defaultTitle,
+    created: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+    messages: []
+  };
+  if (switchNow) {
+    activeSessionId = id;
+  }
+  saveSessions();
+  if (switchNow) {
+    renderSessionsList();
+    renderActiveSession();
+  }
+}
+
+function saveSessions() {
+  try {
+    localStorage.setItem('fetty_sessions', JSON.stringify(sessions));
+    if (activeSessionId) {
+      localStorage.setItem('fetty_active_session_id', activeSessionId);
+    }
+  } catch (e) {
+    console.warn("Storage save error:", e);
+  }
+}
+
+function renderSessionsList() {
+  const skeleton = document.getElementById('sessions-skeleton');
+  if (skeleton) skeleton.style.display = 'none';
+  const list = document.getElementById('sessions-list');
+  list.innerHTML = '';
+  const sids = Object.keys(sessions).reverse();
+
+  sids.forEach(sid => {
+    const sess = sessions[sid];
+    const isActive = sid === activeSessionId;
+    const item = document.createElement('div');
+    item.className = `session-item ${isActive ? 'active' : ''}`;
+    const escapedTitle = escapeHtml(sess.title);
+    item.innerHTML = `
+      <span class="session-item-title" title="${escapedTitle}">${escapedTitle}</span>
+      <div class="session-actions">
+        <button class="session-action-btn dl flex-center" title="Unduh .txt" onclick="downloadSessionTxt(event, '${sid}')">
+          <i class="ri-download-2-line"></i>
+        </button>
+        <button class="session-action-btn del flex-center" title="Hapus" onclick="deleteSession(event, '${sid}')">
+          <i class="ri-delete-bin-line"></i>
+        </button>
+      </div>
+    `;
+    item.onclick = (e) => {
+      if (!e.target.closest('.session-actions')) {
+        activeSessionId = sid;
+        saveSessions();
+        if (typeof window.closeMobileSidebar === 'function') {
+          window.closeMobileSidebar();
+        }
+        renderSessionsList();
+        renderActiveSession();
+      }
+    };
+    list.appendChild(item);
+  });
+  updateQuotaUI();
+}
+
+function deleteSession(e, sid) {
+  if (e) e.stopPropagation();
+  const targetTitle = sessions[sid] ? sessions[sid].title : '';
+  delete sessions[sid];
+  if (Object.keys(sessions).length === 0) {
+    createNewChat(true);
+  } else if (activeSessionId === sid) {
+    activeSessionId = Object.keys(sessions)[0];
+  }
+  saveSessions();
+  renderSessionsList();
+  renderActiveSession();
+  showToast(isEn ? `Deleted: "${targetTitle}"` : `Chat dihapus: "${targetTitle}"`);
+}
+
+function renderActiveSession() {
+  const sess = sessions[activeSessionId];
+  if (!sess) return;
+  document.getElementById('nav-session-title').textContent = sess.title;
+
+  const welcomeHero = document.getElementById('welcome-hero');
+  const messagesList = document.getElementById('messages-list');
+  messagesList.innerHTML = '';
+
+  if (sess.messages.length === 0) {
+    welcomeHero.style.display = 'block';
+  } else {
+    welcomeHero.style.display = 'none';
+    sess.messages.forEach(m => appendMessageToDOM(m.role, m.content, m.time));
+  }
+  scrollToBottom();
+}
+
+function appendMessageToDOM(role, content, timeStr) {
+  const messagesList = document.getElementById('messages-list');
+  const row = document.createElement('div');
+  row.className = `message-row ${role}`;
+
+  const avatarSrc = role === 'user' ? '/assets/user_avatar.svg' : '/assets/fetty_avatar.svg';
+  const parsed = role === 'assistant' ? marked.parse(content || '') : content.replace(/&/g, '&amp;').replace(/</g, '&lt;');
+
+  if (role === 'assistant') {
+    row.innerHTML = `
+      <img src="${avatarSrc}" class="message-avatar" alt="Fetty" />
+      <div class="message-bubble">
+        <div class="bot-md">${parsed}</div>
+        <div class="message-time">${timeStr}</div>
+      </div>
+    `;
+  } else {
+    row.innerHTML = `
+      <div class="message-bubble">
+        <div style="white-space: pre-wrap; word-break: break-word;">${parsed}</div>
+        <div class="message-time">${timeStr}</div>
+      </div>
+      <img src="${avatarSrc}" class="message-avatar" alt="User" />
+    `;
+  }
+  messagesList.appendChild(row);
+  scrollToBottom();
+}
+
+function scrollToBottom() {
+  const container = document.getElementById('chat-scroll-container');
+  container.scrollTop = container.scrollHeight;
+}
+
+// Unduh riwayat .txt
+function downloadActiveSessionTxt() {
+  downloadSessionTxt(null, activeSessionId);
+}
+
+function downloadSessionTxt(e, sid) {
+  if (e) e.stopPropagation();
+  const targetId = sid || activeSessionId;
+  const sess = sessions[targetId];
+  if (!sess) return;
+  if (!sess.messages || sess.messages.length === 0) {
+    showToast(isEn ? "No messages in this chat yet!" : "Belum ada percakapan di sesi ini!");
+    return;
+  }
+
+  const border = "=".repeat(62);
+  const subBorder = "-".repeat(62);
+  const nowStr = new Date().toLocaleString(isEn ? 'en-US' : 'id-ID', {
+    dateStyle: 'full',
+    timeStyle: 'medium'
+  });
+
+  let content = `${border}\n`;
+  content += `FETTY ASSISTANT · RIWAYAT PERCAKAPAN PORTFOLIO\n`;
+  content += `Judul Sesi   : ${sess.title}\n`;
+  content += `Waktu Sesi   : ${sess.created || '-'}\n`;
+  content += `Diunduh Pada : ${nowStr}\n`;
+  content += `Website      : https://fathifadhil.me\n`;
+  content += `${border}\n\n`;
+
+  sess.messages.forEach((m, idx) => {
+    const roleLabel = m.role === 'user' ? '👤 PENGGUNA' : '🐱 FETTY ASSISTANT';
+    content += `[${m.time || ''}] ${roleLabel}:\n`;
+    content += `${m.content.trim()}\n\n`;
+    if (idx < sess.messages.length - 1) {
+      content += `${subBorder}\n\n`;
+    }
+  });
+
+  content += `${border}\n`;
+  content += `Akhir riwayat percakapan. Jelajahi portofolio lengkap di https://fathifadhil.me\n`;
+  content += `${border}\n`;
+
+  const blob = new Blob([content], { type: 'text/plain;charset=utf-8' });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  const cleanTitle = (sess.title || 'chat')
+    .toLowerCase()
+    .replace(/[^a-z0-9]/g, '-')
+    .replace(/-+/g, '-')
+    .replace(/^-|-$/g, '')
+    .slice(0, 30) || 'chat';
+  const dateStr = new Date().toISOString().slice(0, 10);
+  link.href = url;
+  link.download = `fetty-chat-${cleanTitle}-${dateStr}.txt`;
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+  URL.revokeObjectURL(url);
+
+  showToast(isEn ? "Chat conversation downloaded (.txt)! 📥" : "Riwayat percakapan berhasil diunduh (.txt) 📥");
+}
+
+// Geser hapus chat di navbar
+let isDraggingSlide = false;
+let slideStartX = 0;
+let currentSlideX = 0;
+let maxSlideDistance = 0;
+
+function toggleSlideDelete(show) {
+  const bar = document.getElementById('slide-delete-bar');
+  const defBar = document.getElementById('nav-default-bar');
+  if (!bar || !defBar) return;
+  if (show) {
+    bar.classList.add('active');
+    defBar.style.display = 'none';
+    resetSlideState();
+  } else {
+    bar.classList.remove('active');
+    defBar.style.display = 'flex';
+    resetSlideState();
+  }
+}
+
+function resetSlideState() {
+  const thumb = document.getElementById('slide-thumb');
+  const fill = document.getElementById('slide-fill');
+  const trackText = document.getElementById('slide-track-text');
+  if (!thumb || !fill) return;
+  thumb.style.transition = 'transform 0.22s ease';
+  thumb.style.transform = 'translateX(0px)';
+  fill.style.transition = 'width 0.22s ease';
+  fill.style.width = '0px';
+  currentSlideX = 0;
+  isDraggingSlide = false;
+  if (trackText) {
+    trackText.style.opacity = '1';
+    trackText.innerHTML = `<span id="txt-slide-label">${isEn ? 'Swipe right to delete chat' : 'Geser ke kanan untuk hapus chat'}</span> <i class="ri-arrow-right-double-line slide-arrow-anim"></i>`;
+  }
+}
+
+function initSlideDeleteEvents() {
+  const track = document.getElementById('slide-delete-track');
+  const thumb = document.getElementById('slide-thumb');
+  const fill = document.getElementById('slide-fill');
+  const trackText = document.getElementById('slide-track-text');
+  if (!track || !thumb) return;
+
+  function startDrag(clientX) {
+    isDraggingSlide = true;
+    slideStartX = clientX;
+    thumb.style.transition = 'none';
+    fill.style.transition = 'none';
+    maxSlideDistance = Math.max(10, track.clientWidth - thumb.clientWidth - 6);
+  }
+
+  function moveDrag(clientX) {
+    if (!isDraggingSlide) return;
+    const deltaX = clientX - slideStartX;
+    currentSlideX = Math.max(0, Math.min(deltaX, maxSlideDistance));
+    thumb.style.transform = `translateX(${currentSlideX}px)`;
+    fill.style.width = `${currentSlideX + 16}px`;
+
+    const ratio = maxSlideDistance > 0 ? (currentSlideX / maxSlideDistance) : 0;
+    if (trackText) {
+      trackText.style.opacity = Math.max(0, 1 - ratio * 1.6);
+    }
+  }
+
+  function endDrag() {
+    if (!isDraggingSlide) return;
+    isDraggingSlide = false;
+    const ratio = maxSlideDistance > 0 ? (currentSlideX / maxSlideDistance) : 0;
+
+    if (ratio >= 0.72) {
+      // Geser selesai: hapus
+      thumb.style.transition = 'transform 0.15s ease';
+      thumb.style.transform = `translateX(${maxSlideDistance}px)`;
+      fill.style.transition = 'width 0.15s ease';
+      fill.style.width = '100%';
+      if (trackText) {
+        trackText.style.opacity = '1';
+        trackText.innerHTML = `<span style="color:#ef4444; font-weight:700;">${isEn ? 'Chat Deleted!' : 'Chat Terhapus!'} 🗑️</span>`;
+      }
+
+      setTimeout(() => {
+        deleteActiveChatFromNavbar();
+        toggleSlideDelete(false);
+      }, 350);
+    } else {
+      // Batal: reset slider
+      resetSlideState();
+    }
+  }
+
+  // Sentuhan (touch)
+  thumb.addEventListener('touchstart', (e) => startDrag(e.touches[0].clientX), { passive: true });
+  window.addEventListener('touchmove', (e) => {
+    if (isDraggingSlide && e.touches[0]) moveDrag(e.touches[0].clientX);
+  }, { passive: true });
+  window.addEventListener('touchend', endDrag);
+
+  // Mouse
+  thumb.addEventListener('mousedown', (e) => {
+    e.preventDefault();
+    startDrag(e.clientX);
+  });
+  window.addEventListener('mousemove', (e) => {
+    if (isDraggingSlide) moveDrag(e.clientX);
+  });
+  window.addEventListener('mouseup', endDrag);
+}
+
+function deleteActiveChatFromNavbar() {
+  if (!activeSessionId || !sessions[activeSessionId]) return;
+  const oldTitle = sessions[activeSessionId].title;
+  delete sessions[activeSessionId];
+  if (Object.keys(sessions).length === 0) {
+    createNewChat(true);
+  } else {
+    activeSessionId = Object.keys(sessions)[0];
+  }
+  saveSessions();
+  renderSessionsList();
+  renderActiveSession();
+  showToast(isEn ? `Deleted: "${oldTitle}"` : `Chat dihapus: "${oldTitle}"`);
+}
+
+// Input suara (speech recognition)
+let speechRecognizer = null;
+let isListeningSpeech = false;
+
+function initSpeechRecognition() {
+  const SpeechRec = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if (!SpeechRec) return;
+
+  try {
+    speechRecognizer = new SpeechRec();
+    speechRecognizer.continuous = false;
+    speechRecognizer.interimResults = true;
+
+    speechRecognizer.onstart = () => {
+      isListeningSpeech = true;
+      const btn = document.getElementById('btn-mic');
+      if (btn) btn.classList.add('listening');
+      const input = document.getElementById('chat-input');
+      if (input) {
+        input.placeholder = isEn
+          ? "🎙️ Listening... Speak now nyaa~"
+          : "🎙️ Mendengarkan suara kamu... Bicaralah sekarang nyaa~";
+      }
+    };
+
+    speechRecognizer.onresult = (event) => {
+      let speechText = '';
+      for (let i = event.resultIndex; i < event.results.length; ++i) {
+        speechText += event.results[i][0].transcript;
+      }
+      const input = document.getElementById('chat-input');
+      if (input && speechText) {
+        input.value = speechText;
+      }
+    };
+
+    speechRecognizer.onerror = (event) => {
+      console.warn("Speech recognition error:", event.error);
+      stopSpeechListening();
+      if (event.error === 'not-allowed') {
+        showToast(isEn ? "Microphone permission blocked" : "Izin mikrofon diblokir oleh browser");
+      } else if (event.error !== 'no-speech') {
+        showToast(isEn ? `Mic error: ${event.error}` : `Kendala mic: ${event.error}`);
+      }
+    };
+
+    speechRecognizer.onend = () => {
+      stopSpeechListening();
+    };
+  } catch (err) {
+    console.warn("SpeechRecognition init error:", err);
+  }
+}
+
+function toggleSpeechRecognition() {
+  const SpeechRec = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if (!SpeechRec) {
+    alert(isEn
+      ? "Your browser doesn't support Speech Recognition. Please try Google Chrome or Microsoft Edge!"
+      : "Browser kamu belum mendukung input suara. Silakan coba di Google Chrome atau Microsoft Edge ya!"
+    );
+    return;
+  }
+
+  if (isListeningSpeech) {
+    if (speechRecognizer) {
+      try { speechRecognizer.stop(); } catch (e) {}
+    }
+    stopSpeechListening();
+  } else {
+    if (!speechRecognizer) initSpeechRecognition();
+    if (speechRecognizer) {
+      speechRecognizer.lang = isEn ? 'en-US' : 'id-ID';
+      try {
+        speechRecognizer.start();
+      } catch (e) {
+        console.warn("Speech recognition start issue:", e);
+      }
+    }
+  }
+}
+
+function stopSpeechListening() {
+  isListeningSpeech = false;
+  const btn = document.getElementById('btn-mic');
+  if (btn) btn.classList.remove('listening');
+  const input = document.getElementById('chat-input');
+  if (input && remainingQuota > 0) {
+    if (window.innerWidth <= 640) {
+      input.placeholder = isEn ? "Ask Fetty anything... 🐾" : "Tanya seputar Fathi... 🐾";
+    } else {
+      input.placeholder = isEn ? "Ask anything about Fathi's projects, tech stack..." : "Ketik pertanyaan kamu seputar portofolio Fathi...";
+    }
+  }
+}
+
+// Kirim chat ke API
+async function handleChatSubmit(e) {
+  e.preventDefault();
+  const input = document.getElementById('chat-input');
+  const text = input.value.trim();
+  if (!text || isGenerating) return;
+  input.value = '';
+  sendUserMessage(text);
+}
+
+async function sendUserMessage(text) {
+  if (remainingQuota <= 0) {
+    alert(isEn ? "Daily quota of 5 questions reached!" : "Batas 5 pertanyaan harian telah tercapai.");
+    return;
+  }
+  if (isGenerating) return;
+
+  const sess = sessions[activeSessionId];
+  if (!sess) return;
+
+  // Sembunyikan hero
+  document.getElementById('welcome-hero').style.display = 'none';
+
+  const nowTime = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+
+  // Pesan user
+  const userMsg = { role: 'user', content: text, time: nowTime };
+  sess.messages.push(userMsg);
+  appendMessageToDOM('user', text, nowTime);
+
+  // Judul otomatis dari pesan pertama
+  if (sess.title === "Chat Baru" || sess.title === "New Chat") {
+    sess.title = text.length > 24 ? text.slice(0, 24) + '...' : text;
+    document.getElementById('nav-session-title').textContent = sess.title;
+    renderSessionsList();
+  }
+
+  saveSessions();
+  recordQuestionUsage();
+
+  // Loading indikator
+  isGenerating = true;
+  document.getElementById('btn-submit').disabled = true;
+  const skeleton = document.getElementById('thinking-skeleton');
+  skeleton.style.display = 'flex';
+  scrollToBottom();
+
+  try {
+    // Riwayat pesan (filter error)
+    const historyPayload = sess.messages.slice(0, -1)
+      .filter(m => !m.isError)
+      .map(m => ({
+        role: m.role === 'assistant' ? 'model' : 'user',
+        content: m.content
+      }));
+
+    const res = await fetch('/api/chat', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        message: text,
+        history: historyPayload
+      })
+    });
+
+    if (!res.ok) {
+      const errData = await res.json().catch(() => ({}));
+      throw new Error(errData.message || `Server error (${res.status})`);
+    }
+
+    const data = await res.json();
+    const replyText = data.reply || (isEn ? "No response received meow~ 😿" : "Tidak ada respon nyaa~ 😿");
+
+    const botMsg = { role: 'assistant', content: replyText, time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) };
+    sess.messages.push(botMsg);
+    saveSessions();
+    appendMessageToDOM('assistant', replyText, botMsg.time);
+  } catch (err) {
+    console.error(err);
+    const errReply = isEn
+      ? `Sorry meow 😿, there was an issue: ${err.message}. Please try again!`
+      : `Waduh meow 😿, ada kendala: ${err.message}. Silakan coba lagi ya!`;
+    const botMsg = { role: 'assistant', content: errReply, isError: true, time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) };
+    sess.messages.push(botMsg);
+    saveSessions();
+    appendMessageToDOM('assistant', errReply, botMsg.time);
+  } finally {
+    isGenerating = false;
+    skeleton.style.display = 'none';
+    document.getElementById('btn-submit').disabled = false;
+    scrollToBottom();
+    document.getElementById('chat-input').focus();
+  }
+}
+
+// Mulai aplikasi
+window.onload = initApp;
