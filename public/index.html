@@ -1,410 +1,106 @@
 <!DOCTYPE html>
-<html lang="id" class="dark">
+<html lang="id">
+
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-  <title>Cat-Bot (Neko) · Asisten AI Portofolio Fathi Fadhil</title>
-  <meta name="description" content="Cat-Bot (Neko), maskot asisten portofolio AI resmi Fathi Fadhil bertenaga Google Gemini 1.5 Flash." />
-  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🐱</text></svg>" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Cat-Bot AI Service · Fathi Fadhil</title>
+  <style>
+    body {
+      margin: 0;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: #09090b;
+      color: #fafafa;
+      font-family: system-ui, -apple-system, sans-serif;
+    }
 
-  <!-- Fonts -->
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet" />
+    .card {
+      background: #18181b;
+      border: 1px solid #27272a;
+      border-radius: 1.5rem;
+      padding: 2.5rem;
+      text-align: center;
+      max-width: 420px;
+      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+    }
 
-  <!-- Tailwind CSS CDN & Marked Markdown Parser -->
-  <script src="https://cdn.tailwindcss.com"></script>
-  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      background: rgba(16, 185, 129, 0.15);
+      border: 1px solid #059669;
+      color: #34d399;
+      padding: 0.35rem 0.85rem;
+      border-radius: 9999px;
+      font-size: 0.8rem;
+      font-weight: 600;
+      margin-bottom: 1rem;
+    }
 
-  <script>
-    tailwind.config = {
-      darkMode: 'class',
-      theme: {
-        extend: {
-          fontFamily: {
-            sans: ['"Plus Jakarta Sans"', 'sans-serif'],
-            display: ['"Outfit"', 'sans-serif'],
-          },
-          colors: {
-            brand: {
-              50: '#ecfdf5',
-              100: '#d1fae5',
-              200: '#a7f3d0',
-              300: '#6ee7b7',
-              400: '#34d399',
-              500: '#10b981',
-              600: '#059669',
-              700: '#047857',
-              800: '#065f46',
-              900: '#064e3b',
-            }
-          }
-        }
+    .dot {
+      width: 8px;
+      height: 8px;
+      background: #10b981;
+      border-radius: 50%;
+      animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+    }
+
+    @keyframes pulse {
+
+      0%,
+      100% {
+        opacity: 1;
+      }
+
+      50% {
+        opacity: .5;
       }
     }
-  </script>
 
-  <style>
-    /* Custom Scrollbar */
-    ::-webkit-scrollbar {
-      width: 6px;
-      height: 6px;
-    }
-    ::-webkit-scrollbar-track {
-      background: transparent;
-    }
-    ::-webkit-scrollbar-thumb {
-      background: rgba(156, 163, 175, 0.3);
-      border-radius: 9999px;
-    }
-    ::-webkit-scrollbar-thumb:hover {
-      background: rgba(156, 163, 175, 0.5);
+    h1 {
+      font-size: 1.5rem;
+      margin: 0 0 0.5rem 0;
     }
 
-    /* Markdown Styling in Bot Messages */
-    .bot-markdown p {
-      margin-bottom: 0.5rem;
+    p {
+      color: #a1a1aa;
+      font-size: 0.9rem;
+      line-height: 1.5;
+      margin: 0 0 1.5rem 0;
     }
-    .bot-markdown p:last-child {
-      margin-bottom: 0;
-    }
-    .bot-markdown strong {
-      font-weight: 700;
+
+    a {
       color: #10b981;
-    }
-    .dark .bot-markdown strong {
-      color: #34d399;
-    }
-    .bot-markdown ul {
-      list-style-type: disc;
-      padding-left: 1.25rem;
-      margin-bottom: 0.5rem;
-    }
-    .bot-markdown ol {
-      list-style-type: decimal;
-      padding-left: 1.25rem;
-      margin-bottom: 0.5rem;
-    }
-    .bot-markdown li {
-      margin-bottom: 0.25rem;
-    }
-    .bot-markdown a {
-      color: #059669;
-      text-decoration: underline;
+      text-decoration: none;
       font-weight: 500;
-      word-break: break-all;
+      font-size: 0.9rem;
+      border-bottom: 1px dashed #10b981;
     }
-    .dark .bot-markdown a {
+
+    a:hover {
       color: #34d399;
-    }
-    .bot-markdown code {
-      background: rgba(0,0,0,0.06);
-      padding: 0.15rem 0.35rem;
-      border-radius: 0.25rem;
-      font-size: 0.85em;
-    }
-    .dark .bot-markdown code {
-      background: rgba(255,255,255,0.1);
-    }
-    .bot-markdown img {
-      display: inline-block;
-      max-height: 20px;
-      margin: 2px 3px;
-      vertical-align: middle;
     }
   </style>
 </head>
-<body class="bg-zinc-100 dark:bg-zinc-950 text-zinc-900 dark:text-zinc-100 font-sans transition-colors duration-200 h-screen flex flex-col overflow-hidden">
 
-  <!-- Container App -->
-  <div id="app-container" class="flex flex-col h-full w-full max-w-4xl mx-auto sm:border-x sm:border-zinc-200 dark:sm:border-zinc-800 bg-white dark:bg-zinc-900 shadow-2xl relative">
-
-    <!-- Top Navigation Bar -->
-    <header class="px-4 py-3 bg-white/80 dark:bg-zinc-900/80 backdrop-blur-md border-b border-zinc-200 dark:border-zinc-800 flex items-center justify-between shrink-0 z-10">
-      <div class="flex items-center gap-3">
-        <div class="relative w-10 h-10 rounded-2xl bg-gradient-to-tr from-brand-600 to-teal-500 flex items-center justify-center text-xl text-white shadow-md shadow-brand-500/20">
-          <span>🐱</span>
-          <span class="absolute -top-0.5 -right-0.5 w-3 h-3 rounded-full bg-emerald-400 border-2 border-white dark:border-zinc-900 animate-pulse"></span>
-        </div>
-        <div>
-          <div class="flex items-center gap-2">
-            <h1 class="font-display font-bold text-base leading-tight">Cat-Bot (Neko)</h1>
-            <span class="text-[10px] uppercase tracking-wider font-bold bg-brand-500/10 text-brand-600 dark:text-brand-400 border border-brand-500/20 px-1.5 py-0.5 rounded-md">AI Gemini</span>
-          </div>
-          <p class="text-xs text-zinc-500 dark:text-zinc-400">Asisten Portofolio Resmi Fathi Fadhil</p>
-        </div>
-      </div>
-
-      <div class="flex items-center gap-1.5">
-        <!-- Tautan ke portofolio utama (sembunyikan jika di-embed) -->
-        <a id="btn-portfolio" href="https://fathifadhil.me" target="_blank" rel="noopener noreferrer" class="hidden sm:inline-flex items-center gap-1 text-xs text-brand-600 dark:text-brand-400 hover:bg-brand-50 dark:hover:bg-brand-950/40 px-2.5 py-1.5 rounded-xl border border-brand-500/20 transition-all font-medium">
-          <span>fathifadhil.me</span>
-          <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
-        </a>
-
-        <!-- Tombol Clear / Reset Chat -->
-        <button id="btn-reset" type="button" title="Bersihkan Percakapan" class="p-2 text-zinc-500 hover:text-zinc-800 dark:text-zinc-400 dark:hover:text-zinc-100 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-xl transition-all">
-          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
-        </button>
-
-        <!-- Toggle Mode Terang / Gelap -->
-        <button id="btn-theme" type="button" title="Ganti Tema" class="p-2 text-zinc-500 hover:text-zinc-800 dark:text-zinc-400 dark:hover:text-zinc-100 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-xl transition-all">
-          <span id="theme-icon">🌙</span>
-        </button>
-      </div>
-    </header>
-
-    <!-- Chat Messages Scroll Container -->
-    <main id="chat-messages" class="flex-1 overflow-y-auto p-4 sm:p-6 space-y-4 bg-zinc-50/60 dark:bg-zinc-950/40">
-      <!-- Welcome Hero Card -->
-      <div id="welcome-card" class="bg-gradient-to-br from-brand-50 to-teal-50/40 dark:from-zinc-800/80 dark:to-zinc-850/80 border border-brand-200/60 dark:border-zinc-700/60 rounded-3xl p-5 mb-2 shadow-xs text-center max-w-lg mx-auto">
-        <div class="w-14 h-14 mx-auto rounded-2xl bg-gradient-to-tr from-brand-500 to-teal-400 flex items-center justify-center text-3xl shadow-lg shadow-brand-500/20 mb-3 animate-bounce">
-          🐱
-        </div>
-        <h2 class="font-display font-bold text-lg text-zinc-900 dark:text-zinc-100 mb-1">
-          Halo nyaa~! Aku Cat-Bot 🐾
-        </h2>
-        <p class="text-xs sm:text-sm text-zinc-600 dark:text-zinc-300 leading-relaxed mb-4">
-          Maskot asisten portofolio Fathi Fadhil. Siap membedah proyek unggulan, tech stack, sertifikasi, hingga kontak kolaborasi!
-        </p>
-
-        <!-- Quick Prompt Chips -->
-        <div class="flex flex-wrap items-center justify-center gap-2">
-          <button class="quick-chip text-xs bg-white dark:bg-zinc-800 hover:bg-brand-50 dark:hover:bg-brand-950/60 text-zinc-700 dark:text-zinc-200 border border-zinc-200 dark:border-zinc-700 hover:border-brand-300 dark:hover:border-brand-600 px-3 py-1.5 rounded-full transition-all duration-150 shadow-2xs font-medium cursor-pointer" data-prompt="Apa saja proyek unggulan yang dibuat Fathi? 🚀">
-            🚀 Proyek Unggulan
-          </button>
-          <button class="quick-chip text-xs bg-white dark:bg-zinc-800 hover:bg-brand-50 dark:hover:bg-brand-950/60 text-zinc-700 dark:text-zinc-200 border border-zinc-200 dark:border-zinc-700 hover:border-brand-300 dark:hover:border-brand-600 px-3 py-1.5 rounded-full transition-all duration-150 shadow-2xs font-medium cursor-pointer" data-prompt="Apa tech stack dan keahlian utama Fathi Fadhil? 💻">
-            💻 Tech Stack
-          </button>
-          <button class="quick-chip text-xs bg-white dark:bg-zinc-800 hover:bg-brand-50 dark:hover:bg-brand-950/60 text-zinc-700 dark:text-zinc-200 border border-zinc-200 dark:border-zinc-700 hover:border-brand-300 dark:hover:border-brand-600 px-3 py-1.5 rounded-full transition-all duration-150 shadow-2xs font-medium cursor-pointer" data-prompt="Bagaimana cara menghubungi atau mengajak Fathi berkolaborasi? 📬">
-            📬 Kontak & Kolaborasi
-          </button>
-          <button class="quick-chip text-xs bg-white dark:bg-zinc-800 hover:bg-brand-50 dark:hover:bg-brand-950/60 text-zinc-700 dark:text-zinc-200 border border-zinc-200 dark:border-zinc-700 hover:border-brand-300 dark:hover:border-brand-600 px-3 py-1.5 rounded-full transition-all duration-150 shadow-2xs font-medium cursor-pointer" data-prompt="Ceritakan pengalaman dan sertifikasi Fathi Fadhil 🎓">
-            🎓 Sertifikasi & Pengalaman
-          </button>
-        </div>
-      </div>
-
-      <!-- Container Dinamis Pesan Chat -->
-      <div id="messages-list" class="space-y-4"></div>
-
-      <!-- Typing Indicator -->
-      <div id="typing-indicator" class="hidden flex gap-3 items-end">
-        <div class="w-8 h-8 rounded-full bg-brand-100 dark:bg-brand-950/80 border border-brand-300 dark:border-brand-800 flex items-center justify-center text-sm shrink-0 shadow-xs">
-          🐾
-        </div>
-        <div class="bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700/80 rounded-2xl rounded-bl-xs px-4 py-3 shadow-xs flex items-center gap-2">
-          <span class="text-xs text-zinc-500 dark:text-zinc-400 font-medium">Neko sedang berpikir nyaa~</span>
-          <span class="flex items-center gap-1">
-            <span class="w-1.5 h-1.5 rounded-full bg-brand-500 animate-bounce [animation-delay:-0.3s]"></span>
-            <span class="w-1.5 h-1.5 rounded-full bg-brand-500 animate-bounce [animation-delay:-0.15s]"></span>
-            <span class="w-1.5 h-1.5 rounded-full bg-brand-500 animate-bounce"></span>
-          </span>
-        </div>
-      </div>
-
-      <div id="messages-bottom" class="h-2"></div>
-    </main>
-
-    <!-- Bottom Input Form -->
-    <footer class="p-3 sm:p-4 bg-white dark:bg-zinc-900 border-t border-zinc-200 dark:border-zinc-800 shrink-0">
-      <form id="chat-form" class="flex items-center gap-2">
-        <div class="flex-1 relative flex items-center">
-          <input
-            id="message-input"
-            type="text"
-            autocomplete="off"
-            placeholder="Tanya seputar proyek, tech stack, atau kontak Fathi nyaa... 🐾"
-            class="w-full bg-zinc-100 dark:bg-zinc-800/80 text-zinc-900 dark:text-zinc-100 placeholder-zinc-400 dark:placeholder-zinc-500 text-xs sm:text-sm px-4 py-3 rounded-2xl border border-transparent focus:border-brand-500 dark:focus:border-brand-500 focus:bg-white dark:focus:bg-zinc-800 outline-none transition-all pr-10"
-          />
-        </div>
-        <button
-          id="btn-send"
-          type="submit"
-          class="w-11 h-11 flex items-center justify-center bg-gradient-to-tr from-brand-600 to-teal-500 hover:from-brand-700 hover:to-teal-600 text-white rounded-2xl shadow-md shadow-brand-500/20 hover:scale-105 active:scale-95 transition-all duration-150 disabled:opacity-40 disabled:cursor-not-allowed shrink-0 cursor-pointer"
-        >
-          <svg class="w-5 h-5 translate-x-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/>
-          </svg>
-        </button>
-      </form>
-      <p class="text-[10px] text-zinc-400 dark:text-zinc-500 text-center mt-2">
-        Cat-Bot dapat melakukan kekeliruan. Selalu verifikasi info proyek di <a href="https://fathifadhil.me" target="_blank" class="underline hover:text-brand-500">fathifadhil.me</a>.
-      </p>
-    </footer>
-
+<body>
+  <div class="card">
+    <div class="badge">
+      <span class="dot"></span>
+      Service Online & Ready
+    </div>
+    <h1>🐱 Cat-Bot (Neko) API</h1>
+    <p>
+      Backend Vercel Serverless Function aktif bertenaga Google Gemini 1.5 Flash untuk asisten portofolio Fathi Fadhil.
+    </p>
+    <a href="https://fathifadhil.me" target="_blank" rel="noopener noreferrer">
+      Buka Portofolio fathifadhil.me &rarr;
+    </a>
   </div>
-
-  <!-- Script Logika Frontend -->
-  <script>
-    // State App
-    let messages = [];
-    let isGenerating = false;
-
-    // Elemen DOM
-    const messagesList = document.getElementById('messages-list');
-    const messagesBottom = document.getElementById('messages-bottom');
-    const typingIndicator = document.getElementById('typing-indicator');
-    const chatForm = document.getElementById('chat-form');
-    const messageInput = document.getElementById('message-input');
-    const btnSend = document.getElementById('btn-send');
-    const btnReset = document.getElementById('btn-reset');
-    const btnTheme = document.getElementById('btn-theme');
-    const themeIcon = document.getElementById('theme-icon');
-    const welcomeCard = document.getElementById('welcome-card');
-    const btnPortfolio = document.getElementById('btn-portfolio');
-
-    // Cek Mode Embed (misal dipanggil via ?embed=true dari portofolio)
-    const urlParams = new URLSearchParams(window.location.search);
-    const isEmbed = urlParams.get('embed') === 'true';
-    if (isEmbed) {
-      document.getElementById('app-container').classList.remove('max-w-4xl', 'sm:border-x');
-      btnPortfolio.classList.add('hidden');
-    }
-
-    // Konfigurasi Tema (Dark / Light)
-    function applyTheme(isDark) {
-      if (isDark) {
-        document.documentElement.classList.add('dark');
-        themeIcon.textContent = '☀️';
-        localStorage.setItem('theme', 'dark');
-      } else {
-        document.documentElement.classList.remove('dark');
-        themeIcon.textContent = '🌙';
-        localStorage.setItem('theme', 'light');
-      }
-    }
-
-    const savedTheme = localStorage.getItem('theme');
-    if (savedTheme) {
-      applyTheme(savedTheme === 'dark');
-    } else {
-      applyTheme(window.matchMedia('(prefers-color-scheme: dark)').matches);
-    }
-
-    btnTheme.addEventListener('click', () => {
-      const isDark = document.documentElement.classList.contains('dark');
-      applyTheme(!isDark);
-    });
-
-    // Auto-scroll ke bawah
-    function scrollToBottom() {
-      messagesBottom.scrollIntoView({ behavior: 'smooth' });
-    }
-
-    // Render pesan ke DOM
-    function renderMessage(role, content, timestamp = new Date()) {
-      const isBot = role === 'model' || role === 'assistant';
-      const wrapper = document.createElement('div');
-      wrapper.className = `flex gap-3 items-end ${isBot ? 'justify-start' : 'justify-end'} animate-in fade-in duration-200`;
-
-      const timeStr = timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-
-      if (isBot) {
-        const parsedContent = marked.parse(content || '');
-        wrapper.innerHTML = `
-          <div class="w-8 h-8 rounded-full bg-brand-100 dark:bg-brand-950/80 border border-brand-300 dark:border-brand-800 flex items-center justify-center text-sm shrink-0 shadow-xs select-none">
-            🐾
-          </div>
-          <div class="max-w-[85%] sm:max-w-[80%] px-4 py-3 rounded-2xl rounded-bl-xs bg-white dark:bg-zinc-800 text-zinc-800 dark:text-zinc-100 border border-zinc-200 dark:border-zinc-700/80 shadow-xs text-xs sm:text-sm leading-relaxed">
-            <div class="bot-markdown">${parsedContent}</div>
-            <div class="text-[9px] text-zinc-400 dark:text-zinc-400 text-right mt-1.5 select-none">${timeStr}</div>
-          </div>
-        `;
-      } else {
-        const safeText = content.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
-        wrapper.innerHTML = `
-          <div class="max-w-[85%] sm:max-w-[80%] px-4 py-3 rounded-2xl rounded-br-xs bg-gradient-to-r from-brand-600 to-teal-600 text-white shadow-xs text-xs sm:text-sm leading-relaxed">
-            <div class="whitespace-pre-wrap break-words">${safeText}</div>
-            <div class="text-[9px] text-brand-100 text-right mt-1.5 select-none">${timeStr}</div>
-          </div>
-        `;
-      }
-
-      messagesList.appendChild(wrapper);
-      scrollToBottom();
-    }
-
-    // Kirim Pesan
-    async function sendMessage(text) {
-      const trimmed = text.trim();
-      if (!trimmed || isGenerating) return;
-
-      // Sembunyikan welcome card saat percakapan dimulai
-      if (welcomeCard) welcomeCard.classList.add('hidden');
-
-      renderMessage('user', trimmed);
-      messageInput.value = '';
-      isGenerating = true;
-      btnSend.disabled = true;
-      typingIndicator.classList.remove('hidden');
-      scrollToBottom();
-
-      // Update local history
-      messages.push({ role: 'user', content: trimmed });
-
-      try {
-        const response = await fetch('/api/chat', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            message: trimmed,
-            history: messages.slice(0, -1), // kirim riwayat sebelumnya
-          }),
-        });
-
-        if (!response.ok) {
-          const errData = await response.json().catch(() => ({}));
-          throw new Error(errData.message || `Server error (${response.status})`);
-        }
-
-        const data = await response.json();
-        const botReply = data.reply || 'Maaf meow, Neko tidak menerima respons dari server nyaa~ 😿';
-
-        messages.push({ role: 'model', content: botReply });
-        renderMessage('model', botReply);
-      } catch (err) {
-        console.error('Chat Error:', err);
-        const errMsg = `Meoww 😿 Terjadi kendala teknis: ${err.message || 'Koneksi terputus'}. Silakan coba tanyakan lagi ya nyaa~!`;
-        renderMessage('model', errMsg);
-      } finally {
-        isGenerating = false;
-        btnSend.disabled = false;
-        typingIndicator.classList.add('hidden');
-        messageInput.focus();
-        scrollToBottom();
-      }
-    }
-
-    // Event Listener Form
-    chatForm.addEventListener('submit', (e) => {
-      e.preventDefault();
-      sendMessage(messageInput.value);
-    });
-
-    // Quick chips
-    document.querySelectorAll('.quick-chip').forEach((btn) => {
-      btn.addEventListener('click', () => {
-        const prompt = btn.getAttribute('data-prompt');
-        if (prompt) sendMessage(prompt);
-      });
-    });
-
-    // Reset Chat
-    btnReset.addEventListener('click', () => {
-      if (confirm('Bersihkan seluruh obrolan dan mulai baru nyaa~?')) {
-        messages = [];
-        messagesList.innerHTML = '';
-        if (welcomeCard) welcomeCard.classList.remove('hidden');
-        messageInput.value = '';
-        messageInput.focus();
-      }
-    });
-
-    // Focus on load
-    window.addEventListener('load', () => {
-      setTimeout(() => messageInput.focus(), 200);
-    });
-  </script>
 </body>
+
 </html>
