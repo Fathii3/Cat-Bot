@@ -1,9 +1,0 @@
-[client]
-toolbarMode = "minimal"
-showErrorDetails = "full"
-
-[theme]
-primaryColor = "#059669"
-backgroundColor = "#FFFFFF"
-secondaryBackgroundColor = "#F4F4F5"
-textColor = "#18181B"

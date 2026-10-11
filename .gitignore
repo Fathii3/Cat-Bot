@@ -39,5 +39,10 @@ node_modules/
 .env.*.local
 .vercel/
 
+# Streamlit (Lokal only)
+streamlit_app/
+.streamlit/
+
+
 
 
