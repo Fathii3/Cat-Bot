@@ -1,30 +1,28 @@
 <!DOCTYPE html>
 <html lang="id">
+
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <title>Fetty Assistant · Portfolio AI</title>
   <link rel="icon" type="image/svg+xml" href="/assets/fetty_avatar.svg" />
 
-  <!-- Font Google -->
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet" />
-
-  <!-- Icon Library RemixIcon -->
+  <link
+    href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap"
+    rel="stylesheet" />
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/remixicon@4.2.0/fonts/remixicon.css" />
-
-  <!-- Parser markdown -->
   <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
   <link rel="stylesheet" href="/css/style.css" />
 </head>
+
 <body>
 
   <div id="app">
-    <!-- Overlay mobile -->
+
     <div id="sidebar-overlay" class="sidebar-overlay"></div>
 
-    <!-- Sidebar -->
     <aside id="sidebar">
       <div class="sidebar-header">
         <div class="sidebar-brand">
@@ -40,20 +38,17 @@
           </div>
         </div>
 
-        <!-- Pilihan bahasa -->
         <div class="lang-segmented">
           <button id="lang-en" class="lang-btn" onclick="setLanguage(true)">English</button>
           <button id="lang-id" class="lang-btn active" onclick="setLanguage(false)">Indonesia</button>
         </div>
 
-        <!-- Tombol chat baru -->
         <button id="btn-new-chat" class="btn-new-chat" onclick="createNewChat()">
           <i class="ri-add-line"></i>
           <span id="txt-new-chat">Chat Baru</span>
         </button>
       </div>
 
-      <!-- Riwayat chat -->
       <div class="sidebar-history">
         <div class="sidebar-section-title" id="txt-history-title">Riwayat Percakapan</div>
         <div id="sessions-skeleton" style="display: none;">
@@ -64,15 +59,12 @@
         <div id="sessions-list"></div>
       </div>
 
-      <!-- Footer sidebar -->
       <div class="sidebar-footer">
         <span id="sidebar-quota-text">1 chat tersimpan • Kuota: 5/5</span>
       </div>
     </aside>
 
-    <!-- Konten utama -->
     <main id="main-content">
-      <!-- Navbar atas -->
       <header class="top-navbar" id="top-navbar">
         <div class="nav-default-bar">
           <div class="nav-left">
@@ -85,14 +77,14 @@
             </div>
           </div>
           <div class="nav-right">
-            <!-- Unduh riwayat .txt -->
-            <button id="btn-download-chat" class="btn-action" title="Unduh percakapan ini (.txt)" onclick="downloadActiveSessionTxt()">
+            <button id="btn-download-chat" class="btn-action" title="Unduh percakapan ini (.txt)"
+              onclick="downloadActiveSessionTxt()">
               <i class="ri-download-2-line"></i>
               <span class="btn-action-label" id="txt-btn-download">Unduh .txt</span>
             </button>
 
-            <!-- Tombol hapus chat -->
-            <button id="btn-trigger-delete" class="btn-action btn-danger" title="Geser ke kanan untuk hapus chat" onclick="toggleSlideDelete(true)">
+            <button id="btn-trigger-delete" class="btn-action btn-danger" title="Geser ke kanan untuk hapus chat"
+              onclick="toggleSlideDelete(true)">
               <i class="ri-delete-bin-line"></i>
               <span class="btn-action-label" id="txt-btn-delete">Hapus</span>
             </button>
@@ -104,7 +96,6 @@
           </div>
         </div>
 
-        <!-- Geser hapus chat -->
         <div class="slide-delete-bar" id="slide-delete-bar">
           <button class="slide-cancel-btn btn-icon-sm" onclick="toggleSlideDelete(false)" title="Batal Hapus">
             <i class="ri-close-line"></i>
@@ -122,11 +113,9 @@
         </div>
       </header>
 
-      <!-- Area chat -->
       <div id="chat-scroll-container" class="chat-scroll-container">
         <div class="chat-inner">
 
-          <!-- Hero pembuka -->
           <div id="welcome-hero" class="welcome-hero">
             <div class="hero-avatar-wrap">
               <div class="hero-avatar-glow"></div>
@@ -136,20 +125,15 @@
             </div>
             <h2 id="hero-title" class="hero-title">Ada yang ingin kamu tanyakan seputar Fathi Fadhil?</h2>
             <p id="hero-subtitle" class="hero-subtitle">
-              Asisten AI resmi portofolio Fathi Fadhil. Cari tahu seputar proyek unggulan, tech stack, alur pengembangan sistem, hingga pengalaman kerja!
+              Asisten AI resmi portofolio Fathi Fadhil. Cari tahu seputar proyek unggulan, tech stack, alur pengembangan
+              sistem, hingga pengalaman kerja!
             </p>
-
-            <!-- Kartu hero -->
             <div class="hero-cards-grid" id="hero-cards-container"></div>
-
-            <!-- Tombol pintas -->
             <div class="quick-pills-row" id="quick-pills-container"></div>
           </div>
 
-          <!-- Pesan chat -->
           <div id="messages-list" class="chat-messages-list"></div>
 
-          <!-- Indikator mikir (skeleton loading) -->
           <div id="thinking-skeleton" class="message-row assistant" style="display: none; margin-top: 1rem;">
             <img src="/assets/fetty_avatar.svg" class="message-avatar" alt="Fetty" />
             <div class="skeleton-box">
@@ -166,23 +150,16 @@
             </div>
           </div>
 
-          <!-- Pembatas bawah -->
           <div class="chat-bottom-spacer"></div>
         </div>
       </div>
-
-      <!-- Input pesan melayang -->
       <div class="chat-input-wrapper">
         <div class="chat-input-inner">
           <form id="chat-form" class="chat-input-box" onsubmit="handleChatSubmit(event)">
-            <input
-              id="chat-input"
-              type="text"
-              class="chat-input-field"
-              placeholder="Ketik pertanyaan kamu seputar portofolio Fathi..."
-              autocomplete="off"
-            />
-            <button id="btn-mic" type="button" class="btn-icon-md btn-circle flex-center btn-mic" title="Bicara dengan Mikrofon" onclick="toggleSpeechRecognition()">
+            <input id="chat-input" type="text" class="chat-input-field"
+              placeholder="Ketik pertanyaan kamu seputar portofolio Fathi..." autocomplete="off" />
+            <button id="btn-mic" type="button" class="btn-icon-md btn-circle flex-center btn-mic"
+              title="Bicara dengan Mikrofon" onclick="toggleSpeechRecognition()">
               <i class="ri-mic-line"></i>
             </button>
             <button id="btn-submit" type="submit" class="btn-icon-md btn-circle flex-center btn-send" title="Kirim">
@@ -190,16 +167,17 @@
             </button>
           </form>
           <div class="chat-footer-caption">
-            Fetty Assistant can make mistakes. Verify info at <a href="https://fathifadhil.me" target="_blank" style="color: var(--brand-primary); text-decoration: none;">fathifadhil.me</a>.
+            Fetty Assistant can make mistakes. Verify info at <a href="https://fathifadhil.me" target="_blank"
+              style="color: var(--brand-primary); text-decoration: none;">fathifadhil.me</a>.
           </div>
         </div>
       </div>
     </main>
   </div>
 
-  <!-- Notifikasi toast -->
   <div id="toast-container" class="toast-container"></div>
 
   <script src="/js/app.js"></script>
 </body>
+
 </html>
