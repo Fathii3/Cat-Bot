@@ -15,29 +15,87 @@ let activeSessionId = null;
 let isGenerating = false;
 let remainingQuota = 5;
 
-// Data kartu hero
+// Data direktori topik & prompt unggulan
 const HERO_CARDS = {
   en: [
-    { icon: "📁", title: "Featured Projects", desc: "Key production apps & full-stack systems", prompt: "What are Fathi's most notable engineering projects and what problems did they solve?" },
-    { icon: "⚡", title: "Tech Stack & Skills", desc: "Flutter, Next.js, Python, TypeScript & Cloud", prompt: "What core tech stack and tools does Fathi specialize in?" },
-    { icon: "🚀", title: "Dev Workflow", desc: "From concept to production-ready product", prompt: "How does Fathi take an idea from concept to a production-ready product?" },
-    { icon: "📜", title: "Certifications", desc: "Professional licenses & verified credentials", prompt: "What professional certifications and licenses does Fathi hold?" },
-    { icon: "💼", title: "Work Experience", desc: "Engineering journey & professional background", prompt: "Can you summarize Fathi's work experience and engineering journey?" },
-    { icon: "🌐", title: "Connect & Links", desc: "Official social links & collaboration", prompt: "Where can I find Fathi Fadhil's official social media and contact links?" }
+    {
+      tag: "FEATURED SYSTEMS",
+      icon: "ri-folder-code-line",
+      title: "Production Projects",
+      desc: "FINARA (Offline-First POS & Gemini AI), SKM Langkat (Public Survey), Dist & SiBanjir.",
+      prompt: "What are Fathi's most notable engineering projects and what architectures did they use?"
+    },
+    {
+      tag: "CORE ARCHITECTURE",
+      icon: "ri-stack-line",
+      title: "Tech Stack & Mastery",
+      desc: "Flutter, Dart, Next.js 14, TypeScript, Laravel 13, Firebase, Supabase, Google Gemini API.",
+      prompt: "What technical stack, languages, and frameworks does Fathi specialize in?"
+    },
+    {
+      tag: "METHODOLOGY",
+      icon: "ri-git-branch-line",
+      title: "Idea to Product Workflow",
+      desc: "Discovery (Needs) → Strategy (Architecture) → Build (Code) → Testing → Zero-Downtime Release.",
+      prompt: "How does Fathi's engineering workflow translate an idea into a production-ready product?"
+    },
+    {
+      tag: "CREDENTIALS",
+      icon: "ri-award-line",
+      title: "Certifications & Experience",
+      desc: "Google Developer Groups #JuaraVibeCoding, Huawei HCIA-AI, IBM SkillsBuild, Diskominfo PKL.",
+      prompt: "What professional certifications, licenses, and industry experience does Fathi possess?"
+    }
   ],
   id: [
-    { icon: "📁", title: "Projek Unggulan", desc: "Sistem produksi & aplikasi full-stack", prompt: "Boleh ceritakan apa saja proyek-proyek unggulan yang pernah dikerjakan oleh Fathi?" },
-    { icon: "⚡", title: "Tech Stack & Keahlian", desc: "Flutter, Next.js, Python, TypeScript & Cloud", prompt: "Teknologi dan tech stack apa saja yang dikuasai oleh Fathi?" },
-    { icon: "🚀", title: "Alur Kerja Dev", desc: "Dari rancangan arsitektur hingga rilis", prompt: "Bagaimana workflow dan metodologi Fathi dari ide hingga menjadi produk?" },
-    { icon: "📜", title: "Sertifikasi", desc: "Lisensi profesional & kredensial terverifikasi", prompt: "Apa saja sertifikasi profesional dan lisensi yang dimiliki oleh Fathi?" },
-    { icon: "💼", title: "Pengalaman Kerja", desc: "Perjalanan rekayasa & latar belakang profesional", prompt: "Bagaimana riwayat pengalaman kerja dan perjalanan profesional Fathi?" },
-    { icon: "🌐", title: "Kontak & Kolaborasi", desc: "Tautan media sosial & kontak resmi", prompt: "Di mana saja tautan media sosial dan kontak resmi Fathi Fadhil untuk terhubung?" }
+    {
+      tag: "SISTEM PRODUKSI",
+      icon: "ri-folder-code-line",
+      title: "Proyek & Aplikasi Unggulan",
+      desc: "FINARA (Offline-First POS & Gemini AI), SKM Langkat (Survei IKM Diskominfo), Dist & SiBanjir.",
+      prompt: "Boleh ceritakan arsitektur dan solusi teknis pada proyek-proyek unggulan Fathi Fadhil?"
+    },
+    {
+      tag: "ARSITEKTUR & STACK",
+      icon: "ri-stack-line",
+      title: "Tech Stack & Spesialisasi",
+      desc: "Flutter, Dart, Next.js 14, TypeScript, Laravel 13, Firebase, Supabase, Google Gemini API.",
+      prompt: "Teknologi, bahasa pemrograman, dan framework apa saja yang dikuasai oleh Fathi Fadhil?"
+    },
+    {
+      tag: "METODOLOGI DEV",
+      icon: "ri-git-branch-line",
+      title: "Alur Kerja: Dari Ide ke Rilis",
+      desc: "Discovery (Kebutuhan) → Strategy (Arsitektur) → Build (Coding) → Testing → Rilis Produksi.",
+      prompt: "Bagaimana alur kerja Fathi dari merancang ide hingga menjadi produk siap rilis?"
+    },
+    {
+      tag: "KREDENSIAL & RIWAYAT",
+      icon: "ri-award-line",
+      title: "Sertifikasi & Pengalaman",
+      desc: "Google Developer Groups #JuaraVibeCoding, Huawei HCIA-AI, IBM SkillsBuild, PKL Diskominfo.",
+      prompt: "Apa saja sertifikasi profesional, lisensi, dan pengalaman kerja yang dimiliki oleh Fathi Fadhil?"
+    }
   ]
 };
 
 const QUICK_PILLS = {
-  en: ["📁 Projects", "⚡ Tech Stack", "🚀 Workflow", "📜 Certificates", "💼 Experience", "🌐 Connect"],
-  id: ["📁 Projek", "⚡ Tech Stack", "🚀 Alur Kerja", "📜 Sertifikat", "💼 Pengalaman", "🌐 Kontak"]
+  en: [
+    { label: "FINARA POS (Flutter)", prompt: "Explain the FINARA app, its offline-first architecture, and Gemini AI integration." },
+    { label: "SKM Langkat (Laravel 13)", prompt: "Tell me about the SKM Langkat public survey platform and its security features." },
+    { label: "Full-Stack Tech Stack", prompt: "What core frontend, backend, and mobile technologies does Fathi master?" },
+    { label: "Workflow: Idea to Release", prompt: "How does Fathi manage the development lifecycle from discovery to release?" },
+    { label: "Certifications & Awards", prompt: "What certifications from Google, Huawei, and IBM does Fathi hold?" },
+    { label: "Contact & Collaboration", prompt: "How can I contact Fathi for freelance or full-time opportunities?" }
+  ],
+  id: [
+    { label: "FINARA POS (Flutter)", prompt: "Jelaskan tentang aplikasi FINARA, arsitektur offline-first, dan integrasi Gemini AI-nya." },
+    { label: "SKM Langkat (Laravel 13)", prompt: "Ceritakan tentang platform survei publik SKM Langkat dan proteksi keamanannya." },
+    { label: "Tech Stack & Spesialisasi", prompt: "Apa saja teknologi frontend, backend, dan mobile yang dikuasai Fathi?" },
+    { label: "Workflow Ide ke Rilis", prompt: "Bagaimana alur kerja Fathi dari memahami kebutuhan hingga peluncuran sistem?" },
+    { label: "Sertifikasi GDG & Huawei", prompt: "Apa saja sertifikasi resmi dari Google, Huawei, dan IBM yang dimiliki Fathi?" },
+    { label: "Kontak & Kolaborasi", prompt: "Bagaimana cara menghubungi Fathi untuk peluang kerja sama atau proyek freelance?" }
+  ]
 };
 
 // Inisialisasi aplikasi
@@ -94,12 +152,12 @@ function initApp() {
   const overlay = document.getElementById('sidebar-overlay');
   const toggleBtn = document.getElementById('btn-toggle-sidebar');
 
-  window.closeMobileSidebar = function() {
+  window.closeMobileSidebar = function () {
     sidebar.classList.remove('open');
     overlay.classList.remove('active');
   };
 
-  window.openMobileSidebar = function() {
+  window.openMobileSidebar = function () {
     sidebar.classList.add('open');
     overlay.classList.add('active');
   };
@@ -133,7 +191,7 @@ function showToast(msg, duration = 2800) {
   if (!container) return;
   const toast = document.createElement('div');
   toast.className = 'toast-msg';
-  toast.innerHTML = `<span>💬</span><span>${escapeHtml(msg)}</span>`;
+  toast.innerHTML = `<i class="ri-information-line"></i><span>${escapeHtml(msg)}</span>`;
   container.appendChild(toast);
   setTimeout(() => {
     toast.style.opacity = '0';
@@ -146,11 +204,17 @@ function showToast(msg, duration = 2800) {
 // Kuota & bahasa
 function updateQuotaUI() {
   const qText = `${remainingQuota}/5`;
-  document.getElementById('nav-quota-badge').textContent = `🐾 ${qText}`;
+  const badge = document.getElementById('nav-quota-badge');
+  if (badge) {
+    badge.innerHTML = `<i class="ri-flashlight-line"></i> <span id="nav-quota-val">${qText} ${isEn ? 'left' : 'sisa'}</span>`;
+  }
   const totalSess = Object.keys(sessions).length;
-  document.getElementById('sidebar-quota-text').textContent = isEn
-    ? `${totalSess} chats saved • Quota: ${qText}`
-    : `${totalSess} chat tersimpan • Kuota: ${qText}`;
+  const sidebarQuota = document.getElementById('sidebar-quota-text');
+  if (sidebarQuota) {
+    sidebarQuota.textContent = isEn
+      ? `${totalSess} chats saved • Quota: ${qText}`
+      : `${totalSess} chat tersimpan • Kuota: ${qText}`;
+  }
 
   const input = document.getElementById('chat-input');
   if (remainingQuota <= 0) {
@@ -164,7 +228,7 @@ function recordQuestionUsage() {
   remainingQuota = Math.max(0, remainingQuota - 1);
   try {
     localStorage.setItem('fetty_quota', JSON.stringify({ date: today, remaining: remainingQuota }));
-  } catch (e) {}
+  } catch (e) { }
   updateQuotaUI();
 }
 
@@ -181,14 +245,18 @@ function updateLanguageUI() {
   document.getElementById('lang-en').classList.toggle('active', isEn);
   document.getElementById('lang-id').classList.toggle('active', !isEn);
   document.getElementById('txt-new-chat').textContent = isEn ? "New Chat" : "Chat Baru";
-  document.getElementById('txt-history-title').textContent = isEn ? "Chat History" : "Riwayat Percakapan";
+  document.getElementById('txt-history-title').textContent = isEn ? "Conversation Archive" : "Arsip Percakapan";
+  const brandStatus = document.getElementById('txt-brand-status');
+  if (brandStatus) {
+    brandStatus.textContent = "Online";
+  }
   document.getElementById('hero-title').textContent = isEn
-    ? "How can Fetty help with Fathi's work today?"
-    : "Ada yang ingin kamu tanyakan seputar Fathi Fadhil?";
+    ? "Explore Fathi Fadhil's Engineering Portfolio"
+    : "Eksplorasi Rekayasa & Portofolio Fathi Fadhil";
   document.getElementById('hero-subtitle').textContent = isEn
-    ? "Interactive AI companion for Fathi Fadhil's engineering portfolio. Ask about featured projects, full-stack tech stack, dev workflow, or work experience!"
-    : "Asisten AI resmi portofolio Fathi Fadhil. Cari tahu seputar proyek unggulan, tech stack, alur pengembangan sistem, hingga pengalaman kerja!";
-  document.getElementById('txt-thinking-label').textContent = isEn ? "Fetty is thinking..." : "Fetty lagi mikir...";
+    ? "Official technical AI companion. Analyze production architectures (FINARA, SKM Langkat, Dist), Flutter mobile solutions, full-stack systems, and end-to-end release workflows."
+    : "Asisten interaktif resmi seputar arsitektur sistem (FINARA, SKM Langkat, Dist), implementasi mobile Flutter, tech stack modern, dan alur rilis produksi.";
+  document.getElementById('txt-thinking-label').textContent = isEn ? "Analyzing portfolio knowledge base..." : "Menganalisis basis pengetahuan portofolio...";
 
   const txtBtnDl = document.getElementById('txt-btn-download');
   if (txtBtnDl) txtBtnDl.textContent = isEn ? "Download .txt" : "Unduh .txt";
@@ -197,12 +265,19 @@ function updateLanguageUI() {
   const txtSlide = document.getElementById('txt-slide-label');
   if (txtSlide) txtSlide.textContent = isEn ? "Swipe right to delete chat" : "Geser ke kanan untuk hapus chat";
 
+  const footerCaption = document.getElementById('chat-footer-caption');
+  if (footerCaption) {
+    footerCaption.innerHTML = isEn
+      ? `Powered by Google Gemini · Inquiring into projects & experience of <a href="https://fathifadhil.me" target="_blank">Fathi Fadhil ↗</a>`
+      : `Didukung Google Gemini · Menjawab seputar proyek & pengalaman <a href="https://fathifadhil.me" target="_blank">Fathi Fadhil ↗</a>`;
+  }
+
   const input = document.getElementById('chat-input');
   if (remainingQuota > 0 && !isListeningSpeech) {
     if (window.innerWidth <= 640) {
-      input.placeholder = isEn ? "Ask Fetty anything... 🐾" : "Tanya seputar Fathi... 🐾";
+      input.placeholder = isEn ? "Ask about Fathi's projects..." : "Tanya seputar proyek Fathi...";
     } else {
-      input.placeholder = isEn ? "Ask anything about Fathi's projects, tech stack..." : "Ketik pertanyaan kamu seputar portofolio Fathi...";
+      input.placeholder = isEn ? "Ask about FINARA, tech stack, or release workflow..." : "Tanyakan studi kasus FINARA, tech stack, atau alur rilis...";
     }
   }
 
@@ -210,18 +285,28 @@ function updateLanguageUI() {
   renderQuickPills();
 }
 
-// Render hero & kartu pintas
+// Render hero & kartu direktori
 function renderHeroCards() {
   const container = document.getElementById('hero-cards-container');
+  if (!container) return;
   container.innerHTML = '';
   const cards = isEn ? HERO_CARDS.en : HERO_CARDS.id;
   cards.forEach(c => {
     const div = document.createElement('div');
     div.className = 'hero-card';
     div.innerHTML = `
-      <div class="hero-card-icon">${c.icon}</div>
-      <div class="hero-card-title">${c.title}</div>
-      <div class="hero-card-desc">${c.desc}</div>
+      <div class="hero-card-header">
+        <span class="hero-card-tag">${escapeHtml(c.tag)}</span>
+        <div class="hero-card-icon flex-center">
+          <i class="${escapeHtml(c.icon)}"></i>
+        </div>
+      </div>
+      <div class="hero-card-title">${escapeHtml(c.title)}</div>
+      <div class="hero-card-desc">${escapeHtml(c.desc)}</div>
+      <div class="hero-card-cta">
+        <span>${isEn ? 'Explore topic' : 'Mulai tanya'}</span>
+        <i class="ri-arrow-right-up-line"></i>
+      </div>
     `;
     div.onclick = () => sendUserMessage(c.prompt);
     container.appendChild(div);
@@ -230,14 +315,15 @@ function renderHeroCards() {
 
 function renderQuickPills() {
   const container = document.getElementById('quick-pills-container');
+  if (!container) return;
   container.innerHTML = '';
   const pills = isEn ? QUICK_PILLS.en : QUICK_PILLS.id;
-  const cards = isEn ? HERO_CARDS.en : HERO_CARDS.id;
-  pills.forEach((p, idx) => {
+  pills.forEach(p => {
     const btn = document.createElement('button');
     btn.className = 'quick-pill';
-    btn.textContent = p;
-    btn.onclick = () => sendUserMessage(cards[idx].prompt);
+    btn.type = 'button';
+    btn.innerHTML = `<i class="ri-sparkling-line"></i> <span>${escapeHtml(p.label)}</span>`;
+    btn.onclick = () => sendUserMessage(p.prompt);
     container.appendChild(btn);
   });
 }
@@ -443,7 +529,7 @@ function downloadSessionTxt(e, sid) {
   document.body.removeChild(link);
   URL.revokeObjectURL(url);
 
-  showToast(isEn ? "Chat conversation downloaded (.txt)! 📥" : "Riwayat percakapan berhasil diunduh (.txt) 📥");
+  showToast(isEn ? "Chat conversation downloaded (.txt)" : "Riwayat percakapan berhasil diunduh (.txt)");
 }
 
 // Geser hapus chat di navbar
@@ -637,7 +723,7 @@ function toggleSpeechRecognition() {
 
   if (isListeningSpeech) {
     if (speechRecognizer) {
-      try { speechRecognizer.stop(); } catch (e) {}
+      try { speechRecognizer.stop(); } catch (e) { }
     }
     stopSpeechListening();
   } else {

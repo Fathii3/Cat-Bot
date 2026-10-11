@@ -7,10 +7,11 @@
   <title>Fetty Assistant · Portfolio AI</title>
   <link rel="icon" type="image/svg+xml" href="/assets/fetty_avatar.svg" />
 
+  <!-- impeccable-disable overused-font -- font portofolio resmi pilihan user -->
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link
-    href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap"
+    href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Instrument+Sans:wght@400;500;600;700&display=swap"
     rel="stylesheet" />
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/remixicon@4.2.0/fonts/remixicon.css" />
   <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
@@ -33,7 +34,7 @@
             <div class="brand-title">Fetty Assistant</div>
             <div class="brand-status">
               <span class="status-dot"></span>
-              <span>Online · Portfolio AI</span>
+              <span id="txt-brand-status">Online</span>
             </div>
           </div>
         </div>
@@ -89,9 +90,13 @@
               <span class="btn-action-label" id="txt-btn-delete">Hapus</span>
             </button>
 
-            <span id="nav-quota-badge" class="nav-quota-pill">🐾 5/5</span>
+            <span id="nav-quota-badge" class="nav-quota-pill" title="Sisa kuota pesan hari ini">
+              <i class="ri-flashlight-line"></i>
+              <span id="nav-quota-val">5/5 Sisa</span>
+            </span>
             <a href="https://fathifadhil.me" target="_blank" class="nav-link-portfolio">
-              <span>fathifadhil.me ↗</span>
+              <span>fathifadhil.me</span>
+              <i class="ri-arrow-right-up-line"></i>
             </a>
           </div>
         </div>
@@ -117,16 +122,21 @@
         <div class="chat-inner">
 
           <div id="welcome-hero" class="welcome-hero">
-            <div class="hero-avatar-wrap">
-              <div class="hero-avatar-glow"></div>
+            <div class="hero-dossier-header">
               <div class="hero-avatar flex-center">
                 <img src="/assets/fetty_avatar.svg" alt="Fetty" />
               </div>
+              <div class="hero-dossier-meta">
+                <span class="hero-dossier-tag">
+                  <i class="ri-terminal-box-line"></i> Online
+                </span>
+                <span class="hero-dossier-sub">Fathi Fadhil · Software Engineer</span>
+              </div>
             </div>
-            <h2 id="hero-title" class="hero-title">Ada yang ingin kamu tanyakan seputar Fathi Fadhil?</h2>
+            <h1 id="hero-title" class="hero-title">Eksplorasi Rekayasa & Portofolio Fathi Fadhil</h1>
             <p id="hero-subtitle" class="hero-subtitle">
-              Asisten AI resmi portofolio Fathi Fadhil. Cari tahu seputar proyek unggulan, tech stack, alur pengembangan
-              sistem, hingga pengalaman kerja!
+              Asisten interaktif resmi seputar arsitektur sistem (FINARA, SKM Langkat, Dist), implementasi mobile
+              Flutter, tech stack modern, dan alur rilis produksi.
             </p>
             <div class="hero-cards-grid" id="hero-cards-container"></div>
             <div class="quick-pills-row" id="quick-pills-container"></div>
@@ -137,12 +147,9 @@
           <div id="thinking-skeleton" class="message-row assistant" style="display: none; margin-top: 1rem;">
             <img src="/assets/fetty_avatar.svg" class="message-avatar" alt="Fetty" />
             <div class="skeleton-box">
-              <div class="thinking-pill">
-                <span>🐱</span>
-                <span id="txt-thinking-label">Fetty lagi mikir...</span>
-                <span class="pulse-dot"></span>
-                <span class="pulse-dot"></span>
-                <span class="pulse-dot"></span>
+              <div class="thinking-telemetry">
+                <i class="ri-loader-4-line ri-spin thinking-spinner"></i>
+                <span id="txt-thinking-label">Menganalisis basis pengetahuan portofolio...</span>
               </div>
               <div class="skeleton skeleton-bar w-full"></div>
               <div class="skeleton skeleton-bar w-3-4"></div>
@@ -157,18 +164,18 @@
         <div class="chat-input-inner">
           <form id="chat-form" class="chat-input-box" onsubmit="handleChatSubmit(event)">
             <input id="chat-input" type="text" class="chat-input-field"
-              placeholder="Ketik pertanyaan kamu seputar portofolio Fathi..." autocomplete="off" />
+              placeholder="Tanyakan studi kasus FINARA, tech stack, atau alur rilis..." autocomplete="off" />
             <button id="btn-mic" type="button" class="btn-icon-md btn-circle flex-center btn-mic"
               title="Bicara dengan Mikrofon" onclick="toggleSpeechRecognition()">
               <i class="ri-mic-line"></i>
             </button>
             <button id="btn-submit" type="submit" class="btn-icon-md btn-circle flex-center btn-send" title="Kirim">
-              <i class="ri-send-plane-2-fill"></i>
+              <i class="ri-arrow-up-line"></i>
             </button>
           </form>
-          <div class="chat-footer-caption">
-            Fetty Assistant can make mistakes. Verify info at <a href="https://fathifadhil.me" target="_blank"
-              style="color: var(--brand-primary); text-decoration: none;">fathifadhil.me</a>.
+          <div class="chat-footer-caption" id="chat-footer-caption">
+            Didukung Google Gemini · Menjawab seputar proyek & pengalaman <a href="https://fathifadhil.me"
+              target="_blank">Fathi Fadhil ↗</a>
           </div>
         </div>
       </div>
