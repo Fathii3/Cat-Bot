@@ -47,6 +47,27 @@ function setCorsHeaders(req: VercelRequest, res: VercelResponse) {
   res.setHeader('Access-Control-Allow-Credentials', 'true');
 }
 
+// Helper untuk mengambil seluruh API key dari environment (GEMINI_API_KEY_1..5 atau GEMINI_API_KEY)
+function getGeminiApiKeys(): string[] {
+  const keys: string[] = [];
+
+  // Cek nomor 1 sampai 9
+  for (let i = 1; i <= 9; i++) {
+    const k = process.env[`GEMINI_API_KEY_${i}`]?.trim();
+    if (k && !keys.includes(k)) {
+      keys.push(k);
+    }
+  }
+
+  // Cek kunci tunggal
+  const single = process.env.GEMINI_API_KEY?.trim();
+  if (single && !keys.includes(single)) {
+    keys.push(single);
+  }
+
+  return keys;
+}
+
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   // 1. Tangani CORS Headers
   setCorsHeaders(req, res);
@@ -65,12 +86,12 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   }
 
   // 4. Verifikasi GEMINI_API_KEY di environment
-  const apiKey = process.env.GEMINI_API_KEY;
-  if (!apiKey) {
-    console.error('Server Configuration Error: GEMINI_API_KEY belum disetel.');
+  const apiKeys = getGeminiApiKeys();
+  if (apiKeys.length === 0) {
+    console.error('Server Configuration Error: Belum ada GEMINI_API_KEY atau GEMINI_API_KEY_1..5 yang disetel.');
     return res.status(500).json({
       error: 'Missing API Key',
-      message: 'GEMINI_API_KEY belum dikonfigurasi di environment Vercel serverless.',
+      message: 'Belum ada GEMINI_API_KEY atau GEMINI_API_KEY_1..5 yang dikonfigurasi di environment Vercel.',
     });
   }
 
@@ -87,19 +108,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
     const userMessage = message.trim();
 
-    // 6. Inisialisasi Google Gemini AI Client
-    const genAI = new GoogleGenerativeAI(apiKey);
-    const model = genAI.getGenerativeModel({
-      model: 'gemini-1.5-flash',
-      systemInstruction: BASE_SYSTEM_INSTRUCTION,
-      generationConfig: {
-        temperature: 0.3,
-        topP: 0.95,
-        maxOutputTokens: 1000,
-      },
-    });
-
-    // 7. Format Multi-Turn Chat History
+    // 6. Format Multi-Turn Chat History
     const formattedHistory: Array<{
       role: 'user' | 'model';
       parts: Array<{ text: string }>;
@@ -108,14 +117,11 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     if (Array.isArray(history)) {
       for (const item of history) {
         if (!item) continue;
-        const rawRole = (item.role || '').toLowerCase();
         const textContent = (item.content || item.text || '').trim();
-
         if (!textContent) continue;
 
-        // Normalisasi role: 'user' -> 'user', 'assistant'/'model' -> 'model'
         const role: 'user' | 'model' =
-          rawRole === 'assistant' || rawRole === 'model' ? 'model' : 'user';
+          item.role === 'assistant' || item.role === 'model' ? 'model' : 'user';
 
         formattedHistory.push({
           role,
@@ -129,13 +135,43 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       formattedHistory.shift();
     }
 
-    // 8. Eksekusi obrolan multi-turn dengan Gemini API
-    const chat = model.startChat({
-      history: formattedHistory,
-    });
+    // 7. Eksekusi obrolan dengan rotasi / failover otomatis antar-API Key
+    let responseText: string | null = null;
+    let lastError: any = null;
 
-    const result = await chat.sendMessage(userMessage);
-    const responseText = result.response.text();
+    for (let i = 0; i < apiKeys.length; i++) {
+      const currentKey = apiKeys[i];
+      try {
+        const genAI = new GoogleGenerativeAI(currentKey);
+        const model = genAI.getGenerativeModel({
+          model: 'gemini-1.5-flash',
+          systemInstruction: BASE_SYSTEM_INSTRUCTION,
+          generationConfig: {
+            temperature: 0.3,
+            topP: 0.95,
+            maxOutputTokens: 1000,
+          },
+        });
+
+        const chat = model.startChat({
+          history: formattedHistory,
+        });
+
+        const result = await chat.sendMessage(userMessage);
+        responseText = result.response.text();
+
+        if (responseText) {
+          break; // Berhasil mendapatkan jawaban!
+        }
+      } catch (err: any) {
+        lastError = err;
+        console.warn(`Key index ${i} gagal: ${err?.message}. Mencoba key berikutnya...`);
+      }
+    }
+
+    if (!responseText) {
+      throw lastError || new Error('Semua API key gagal memproses respons.');
+    }
 
     return res.status(200).json({
       reply: responseText,
@@ -143,6 +179,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     });
   } catch (error: any) {
     console.error('Error saat memproses chat dengan Gemini:', error);
+
 
     const errorMessage = error?.message || 'Terjadi kesalahan internal pada server.';
     const statusCode = error?.status || 500;
