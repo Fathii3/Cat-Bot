@@ -32,4 +32,12 @@ data/
 # Dokumen lokal
 Streamlit_CatBubble_Architecture.md
 
+# Node & Vercel
+node_modules/
+.env
+.env.local
+.env.*.local
+.vercel/
+
+
 

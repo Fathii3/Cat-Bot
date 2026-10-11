@@ -1,0 +1,28 @@
+{
+  "name": "cat-bot-api",
+  "version": "1.0.0",
+  "description": "Serverless Gemini AI Chatbot API for Fathi Fadhil Portfolio",
+  "main": "api/chat.ts",
+  "scripts": {
+    "build": "tsc --noEmit",
+    "test": "node --check api/chat.ts"
+  },
+  "keywords": [
+    "vercel",
+    "serverless",
+    "gemini",
+    "chatbot",
+    "portfolio"
+  ],
+  "author": "Fathi Fadhil",
+  "license": "MIT",
+  "dependencies": {
+    "@google/generative-ai": "^0.24.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.13.9",
+    "@types/react": "^19.3.0",
+    "@vercel/node": "^5.1.8",
+    "typescript": "^5.8.2"
+  }
+}
