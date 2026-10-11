@@ -1,0 +1,5 @@
+streamlit_app/
+.streamlit/
+.venv/
+__pycache__/
+*.py
