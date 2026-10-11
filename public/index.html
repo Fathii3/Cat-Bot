@@ -1,106 +1,1244 @@
 <!DOCTYPE html>
 <html lang="id">
-
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Cat-Bot AI Service · Fathi Fadhil</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>Fetty Assistant · Portfolio AI</title>
+  <link rel="icon" type="image/svg+xml" href="/assets/fetty_avatar.svg" />
+
+  <!-- Google Fonts: Inter & Outfit -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet" />
+
+  <!-- Markdown Parser -->
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+
   <style>
-    body {
+    :root {
+      --brand-primary: #059669;
+      --brand-primary-hover: #047857;
+      --brand-light: #ecfdf5;
+      --brand-border: #a7f3d0;
+      --bg-main: #f8fafc;
+      --bg-surface: #ffffff;
+      --bg-sidebar: #f1f5f9;
+      --border-color: #e2e8f0;
+      --text-main: #0f172a;
+      --text-muted: #64748b;
+      --text-soft: #94a3b8;
+      --radius-lg: 16px;
+      --radius-xl: 24px;
+    }
+
+    * {
+      box-sizing: border-box;
       margin: 0;
-      min-height: 100vh;
+      padding: 0;
+      scrollbar-width: thin;
+      scrollbar-color: rgba(148, 163, 184, 0.4) transparent;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    html, body {
+      height: 100%;
+      height: 100dvh;
+      overflow: hidden;
+      font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+      background-color: var(--bg-main);
+      color: var(--text-main);
+    }
+
+    /* Scrollbar */
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    ::-webkit-scrollbar-track {
+      background: transparent;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: rgba(148, 163, 184, 0.4);
+      border-radius: 999px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: rgba(100, 116, 139, 0.65);
+    }
+
+    /* App Container */
+    #app {
+      display: flex;
+      width: 100vw;
+      height: 100vh;
+      height: 100dvh;
+      overflow: hidden;
+      position: relative;
+    }
+
+    /* Sidebar */
+    aside#sidebar {
+      width: 290px;
+      background-color: var(--bg-sidebar);
+      border-right: 1px solid var(--border-color);
+      display: flex;
+      flex-direction: column;
+      flex-shrink: 0;
+      height: 100%;
+      transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+      z-index: 50;
+    }
+
+    aside#sidebar.collapsed {
+      transform: translateX(-100%);
+      position: absolute;
+      left: 0;
+      top: 0;
+      bottom: 0;
+    }
+
+    @media (max-width: 768px) {
+      aside#sidebar {
+        position: absolute;
+        left: 0;
+        top: 0;
+        bottom: 0;
+        box-shadow: 10px 0 30px rgba(0, 0, 0, 0.15);
+      }
+    }
+
+    .sidebar-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(15, 23, 42, 0.4);
+      backdrop-filter: blur(2px);
+      z-index: 45;
+    }
+    .sidebar-overlay.active {
+      display: block;
+    }
+
+    .sidebar-header {
+      padding: 1.25rem 1rem 0.75rem 1rem;
+    }
+
+    .sidebar-brand {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      margin-bottom: 1rem;
+    }
+    .brand-icon {
+      width: 38px;
+      height: 38px;
+      border-radius: 12px;
+      background: linear-gradient(135deg, #059669, #10b981);
       display: flex;
       align-items: center;
       justify-content: center;
-      background: #09090b;
-      color: #fafafa;
-      font-family: system-ui, -apple-system, sans-serif;
+      box-shadow: 0 4px 12px rgba(5, 150, 105, 0.25);
     }
-
-    .card {
-      background: #18181b;
-      border: 1px solid #27272a;
-      border-radius: 1.5rem;
-      padding: 2.5rem;
-      text-align: center;
-      max-width: 420px;
-      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+    .brand-icon img {
+      width: 26px;
+      height: 26px;
     }
-
-    .badge {
-      display: inline-flex;
+    .brand-title {
+      font-family: 'Outfit', sans-serif;
+      font-weight: 700;
+      font-size: 1rem;
+      color: var(--text-main);
+      line-height: 1.2;
+    }
+    .brand-status {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      display: flex;
       align-items: center;
-      gap: 0.5rem;
-      background: rgba(16, 185, 129, 0.15);
-      border: 1px solid #059669;
-      color: #34d399;
-      padding: 0.35rem 0.85rem;
-      border-radius: 9999px;
-      font-size: 0.8rem;
-      font-weight: 600;
-      margin-bottom: 1rem;
+      gap: 0.35rem;
+      margin-top: 2px;
     }
-
-    .dot {
-      width: 8px;
-      height: 8px;
-      background: #10b981;
+    .status-dot {
+      width: 7px;
+      height: 7px;
+      background-color: #10b981;
       border-radius: 50%;
-      animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+      display: inline-block;
+      animation: pulse 2s infinite;
     }
 
     @keyframes pulse {
-
-      0%,
-      100% {
-        opacity: 1;
-      }
-
-      50% {
-        opacity: .5;
-      }
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.5; transform: scale(0.85); }
     }
 
-    h1 {
-      font-size: 1.5rem;
-      margin: 0 0 0.5rem 0;
+    /* Language Switcher */
+    .lang-segmented {
+      display: flex;
+      background: #e2e8f0;
+      padding: 3px;
+      border-radius: 12px;
+      margin-bottom: 0.85rem;
+    }
+    .lang-btn {
+      flex: 1;
+      padding: 6px 0;
+      font-size: 0.8rem;
+      font-weight: 600;
+      text-align: center;
+      border-radius: 9px;
+      border: none;
+      background: transparent;
+      color: var(--text-muted);
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+    .lang-btn.active {
+      background: #ffffff;
+      color: var(--brand-primary);
+      box-shadow: 0 2px 6px rgba(0,0,0,0.06);
     }
 
-    p {
-      color: #a1a1aa;
+    /* New Chat Button */
+    .btn-new-chat {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+      width: 100%;
+      padding: 0.65rem 1rem;
+      background-color: var(--brand-primary);
+      color: #ffffff;
+      border: none;
+      border-radius: 12px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      cursor: pointer;
+      box-shadow: 0 4px 10px rgba(5, 150, 105, 0.2);
+      transition: all 0.15s ease;
+    }
+    .btn-new-chat:hover {
+      background-color: var(--brand-primary-hover);
+      transform: translateY(-1px);
+    }
+
+    /* History List */
+    .sidebar-history {
+      flex: 1;
+      overflow-y: auto;
+      padding: 0.5rem 0.75rem;
+    }
+    .sidebar-section-title {
+      font-size: 0.7rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--text-soft);
+      padding: 0.5rem 0.5rem 0.25rem 0.5rem;
+    }
+    .session-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0.5rem 0.65rem;
+      border-radius: 10px;
+      margin-bottom: 3px;
+      cursor: pointer;
+      font-size: 0.82rem;
+      color: var(--text-main);
+      transition: background 0.15s;
+    }
+    .session-item:hover {
+      background: #e2e8f0;
+    }
+    .session-item.active {
+      background: #e6f4ea;
+      color: var(--brand-primary);
+      font-weight: 600;
+    }
+    .session-item-title {
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      flex: 1;
+    }
+    .session-del-btn {
+      background: none;
+      border: none;
+      color: var(--text-soft);
+      cursor: pointer;
+      padding: 2px 4px;
+      border-radius: 4px;
       font-size: 0.9rem;
-      line-height: 1.5;
-      margin: 0 0 1.5rem 0;
+      opacity: 0;
+      transition: opacity 0.15s;
+    }
+    .session-item:hover .session-del-btn {
+      opacity: 1;
+    }
+    .session-del-btn:hover {
+      color: #ef4444;
     }
 
-    a {
-      color: #10b981;
+    .sidebar-footer {
+      padding: 0.75rem 1rem;
+      border-top: 1px solid var(--border-color);
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    /* Main Area */
+    main#main-content {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+      position: relative;
+      background: var(--bg-surface);
+      overflow: hidden;
+    }
+
+    /* Navbar */
+    .top-navbar {
+      height: 56px;
+      border-bottom: 1px solid var(--border-color);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 1rem;
+      background: rgba(255, 255, 255, 0.85);
+      backdrop-filter: blur(8px);
+      z-index: 20;
+    }
+    .nav-left {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+    .nav-toggle-btn {
+      background: none;
+      border: none;
+      font-size: 1.25rem;
+      cursor: pointer;
+      color: var(--text-main);
+      padding: 6px;
+      border-radius: 8px;
+    }
+    .nav-toggle-btn:hover {
+      background: #f1f5f9;
+    }
+    .nav-avatar {
+      width: 32px;
+      height: 32px;
+      border-radius: 10px;
+    }
+    .nav-title {
+      font-size: 0.9rem;
+      font-weight: 700;
+      color: var(--text-main);
+    }
+    .nav-right {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    .nav-quota-pill {
+      font-size: 0.75rem;
+      font-weight: 600;
+      background: #ecfdf5;
+      color: var(--brand-primary);
+      border: 1px solid var(--brand-border);
+      padding: 3px 8px;
+      border-radius: 20px;
+    }
+    .nav-link-portfolio {
+      font-size: 0.75rem;
+      font-weight: 600;
+      color: var(--brand-primary);
       text-decoration: none;
-      font-weight: 500;
-      font-size: 0.9rem;
-      border-bottom: 1px dashed #10b981;
+      border: 1px solid var(--border-color);
+      padding: 4px 10px;
+      border-radius: 20px;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+    .nav-link-portfolio:hover {
+      background: #f8fafc;
     }
 
-    a:hover {
-      color: #34d399;
+    /* Scrollable Chat Area */
+    .chat-scroll-container {
+      flex: 1;
+      overflow-y: auto;
+      overflow-x: hidden;
+      padding: 1.5rem 1rem 0 1rem;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      scroll-behavior: smooth;
+    }
+
+    .chat-inner {
+      width: 100%;
+      max-width: 780px;
+    }
+
+    /* Welcome Hero (Gemini Style) */
+    .welcome-hero {
+      text-align: center;
+      padding: 1.5rem 0 1rem 0;
+      animation: fadeIn 0.3s ease;
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(6px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .hero-avatar-wrap {
+      position: relative;
+      width: 64px;
+      height: 64px;
+      margin: 0 auto 1rem auto;
+    }
+    .hero-avatar-glow {
+      position: absolute;
+      inset: -4px;
+      border-radius: 20px;
+      background: linear-gradient(135deg, rgba(5, 150, 105, 0.4), rgba(16, 185, 129, 0.2));
+      filter: blur(8px);
+      z-index: 0;
+    }
+    .hero-avatar {
+      position: relative;
+      width: 64px;
+      height: 64px;
+      border-radius: 18px;
+      background: linear-gradient(135deg, #059669, #10b981);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 8px 20px rgba(5, 150, 105, 0.25);
+      z-index: 1;
+    }
+    .hero-avatar img {
+      width: 44px;
+      height: 44px;
+    }
+    .hero-title {
+      font-family: 'Outfit', sans-serif;
+      font-size: 1.45rem;
+      font-weight: 700;
+      color: var(--text-main);
+      margin-bottom: 0.4rem;
+    }
+    .hero-subtitle {
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      max-width: 580px;
+      margin: 0 auto 1.5rem auto;
+      line-height: 1.5;
+    }
+
+    /* Hero Cards Grid (6 Cards) */
+    .hero-cards-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 0.75rem;
+      margin-bottom: 1.5rem;
+    }
+    .hero-card {
+      background: #ffffff;
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-lg);
+      padding: 0.9rem;
+      text-align: left;
+      cursor: pointer;
+      transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+      box-shadow: 0 2px 6px rgba(0,0,0,0.02);
+    }
+    .hero-card:hover {
+      border-color: var(--brand-primary);
+      box-shadow: 0 6px 16px rgba(5, 150, 105, 0.12);
+      transform: translateY(-2px);
+    }
+    .hero-card-icon {
+      font-size: 1.35rem;
+      margin-bottom: 0.35rem;
+    }
+    .hero-card-title {
+      font-size: 0.85rem;
+      font-weight: 700;
+      color: var(--text-main);
+      margin-bottom: 0.2rem;
+    }
+    .hero-card-desc {
+      font-size: 0.72rem;
+      color: var(--text-muted);
+      line-height: 1.35;
+    }
+
+    /* Quick Pills */
+    .quick-pills-row {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 0.4rem;
+      margin-bottom: 1.5rem;
+    }
+    .quick-pill {
+      font-size: 0.75rem;
+      font-weight: 600;
+      background: #ffffff;
+      border: 1px solid var(--border-color);
+      color: var(--text-main);
+      padding: 5px 12px;
+      border-radius: 20px;
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+    .quick-pill:hover {
+      background: #ecfdf5;
+      border-color: var(--brand-border);
+      color: var(--brand-primary);
+    }
+
+    /* Chat Messages */
+    .chat-messages-list {
+      display: flex;
+      flex-direction: column;
+      gap: 1.25rem;
+      width: 100%;
+    }
+    .message-row {
+      display: flex;
+      gap: 0.75rem;
+      width: 100%;
+    }
+    .message-row.user {
+      justify-content: flex-end;
+    }
+    .message-avatar {
+      width: 32px;
+      height: 32px;
+      border-radius: 10px;
+      flex-shrink: 0;
+    }
+    .message-bubble {
+      max-width: 82%;
+      padding: 0.85rem 1.15rem;
+      border-radius: var(--radius-lg);
+      font-size: 0.88rem;
+      line-height: 1.6;
+    }
+    .message-row.assistant .message-bubble {
+      background: #ffffff;
+      border: 1px solid var(--border-color);
+      color: var(--text-main);
+      border-top-left-radius: 4px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.02);
+    }
+    .message-row.user .message-bubble {
+      background: var(--brand-primary);
+      color: #ffffff;
+      border-top-right-radius: 4px;
+      box-shadow: 0 4px 12px rgba(5, 150, 105, 0.2);
+    }
+    .message-time {
+      font-size: 0.65rem;
+      color: var(--text-soft);
+      text-align: right;
+      margin-top: 0.35rem;
+    }
+    .message-row.user .message-time {
+      color: rgba(255, 255, 255, 0.8);
+    }
+
+    /* Markdown inside Bot Bubble */
+    .bot-md p {
+      margin-bottom: 0.5rem;
+    }
+    .bot-md p:last-child {
+      margin-bottom: 0;
+    }
+    .bot-md strong {
+      color: var(--brand-primary);
+      font-weight: 700;
+    }
+    .bot-md ul, .bot-md ol {
+      padding-left: 1.25rem;
+      margin-bottom: 0.5rem;
+    }
+    .bot-md li {
+      margin-bottom: 0.25rem;
+    }
+    .bot-md a {
+      color: var(--brand-primary);
+      text-decoration: underline;
+      font-weight: 600;
+    }
+    .bot-md img {
+      display: inline-block;
+      max-height: 20px;
+      margin: 2px 2px;
+      vertical-align: middle;
+    }
+
+    /* Thinking Skeleton */
+    .skeleton-box {
+      background: #ffffff;
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-lg);
+      padding: 1rem;
+      width: 100%;
+      max-width: 420px;
+      border-top-left-radius: 4px;
+    }
+    .thinking-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: var(--brand-primary);
+      margin-bottom: 0.75rem;
+    }
+    .pulse-dot {
+      width: 5px;
+      height: 5px;
+      border-radius: 50%;
+      background: var(--brand-primary);
+      animation: bounce 1.4s infinite ease-in-out both;
+    }
+    .pulse-dot:nth-child(3) { animation-delay: -0.32s; }
+    .pulse-dot:nth-child(4) { animation-delay: -0.16s; }
+    @keyframes bounce {
+      0%, 80%, 100% { transform: scale(0); }
+      40% { transform: scale(1); }
+    }
+    .skeleton-bars {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+    }
+    .skeleton-bar {
+      height: 12px;
+      border-radius: 6px;
+      background: linear-gradient(90deg, #f1f5f9 25%, #e2e8f0 50%, #f1f5f9 75%);
+      background-size: 200% 100%;
+      animation: shimmer 1.5s infinite;
+    }
+    @keyframes shimmer {
+      0% { background-position: 200% 0; }
+      100% { background-position: -200% 0; }
+    }
+    .w-full { width: 100%; }
+    .w-3-4 { width: 75%; }
+    .w-1-2 { width: 50%; }
+
+    /* Bottom Spacer */
+    .chat-bottom-spacer {
+      height: 130px;
+      width: 100%;
+      flex-shrink: 0;
+    }
+
+    /* Floating Chat Input Fixed at Bottom */
+    .chat-input-wrapper {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: linear-gradient(to bottom, rgba(248, 250, 252, 0) 0%, rgba(248, 250, 252, 0.95) 25%, #f8fafc 100%);
+      padding: 1rem;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      z-index: 30;
+      pointer-events: none;
+    }
+    .chat-input-inner {
+      width: 100%;
+      max-width: 780px;
+      pointer-events: auto;
+    }
+    .chat-input-box {
+      display: flex;
+      align-items: center;
+      background: #ffffff;
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-xl);
+      padding: 6px 8px 6px 16px;
+      box-shadow: 0 8px 24px rgba(15, 23, 42, 0.08);
+      transition: all 0.2s ease;
+    }
+    .chat-input-box:focus-within {
+      border-color: var(--brand-primary);
+      box-shadow: 0 10px 28px rgba(5, 150, 105, 0.16);
+    }
+    .chat-input-field {
+      flex: 1;
+      border: none;
+      outline: none;
+      background: transparent;
+      font-size: 0.88rem;
+      font-family: inherit;
+      color: var(--text-main);
+      padding: 6px 0;
+    }
+    .chat-input-field::placeholder {
+      color: var(--text-soft);
+    }
+    .btn-send {
+      width: 38px;
+      height: 38px;
+      border-radius: 50%;
+      border: none;
+      background: var(--brand-primary);
+      color: #ffffff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: all 0.15s ease;
+      flex-shrink: 0;
+    }
+    .btn-send:hover {
+      background: var(--brand-primary-hover);
+      transform: scale(1.05);
+    }
+    .btn-send:disabled {
+      opacity: 0.4;
+      cursor: not-allowed;
+      transform: none;
+    }
+    .chat-footer-caption {
+      font-size: 0.68rem;
+      color: var(--text-soft);
+      text-align: center;
+      margin-top: 0.4rem;
     }
   </style>
 </head>
-
 <body>
-  <div class="card">
-    <div class="badge">
-      <span class="dot"></span>
-      Service Online & Ready
-    </div>
-    <h1>🐱 Cat-Bot (Neko) API</h1>
-    <p>
-      Backend Vercel Serverless Function aktif bertenaga Google Gemini 1.5 Flash untuk asisten portofolio Fathi Fadhil.
-    </p>
-    <a href="https://fathifadhil.me" target="_blank" rel="noopener noreferrer">
-      Buka Portofolio fathifadhil.me &rarr;
-    </a>
-  </div>
-</body>
 
+  <div id="app">
+    <!-- Overlay Mobile -->
+    <div id="sidebar-overlay" class="sidebar-overlay"></div>
+
+    <!-- Sidebar Streamlit Style -->
+    <aside id="sidebar">
+      <div class="sidebar-header">
+        <div class="sidebar-brand">
+          <div class="brand-icon">
+            <img src="/assets/fetty_avatar.svg" alt="Fetty" />
+          </div>
+          <div class="brand-text">
+            <div class="brand-title">Fetty Assistant</div>
+            <div class="brand-status">
+              <span class="status-dot"></span>
+              <span>Online · Portfolio AI</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Language Switcher -->
+        <div class="lang-segmented">
+          <button id="lang-en" class="lang-btn" onclick="setLanguage(true)">English</button>
+          <button id="lang-id" class="lang-btn active" onclick="setLanguage(false)">Indonesia</button>
+        </div>
+
+        <!-- New Chat Button -->
+        <button id="btn-new-chat" class="btn-new-chat" onclick="createNewChat()">
+          <span>+</span>
+          <span id="txt-new-chat">Chat Baru</span>
+        </button>
+      </div>
+
+      <!-- History List -->
+      <div class="sidebar-history">
+        <div class="sidebar-section-title" id="txt-history-title">Riwayat Percakapan</div>
+        <div id="sessions-list"></div>
+      </div>
+
+      <!-- Sidebar Footer -->
+      <div class="sidebar-footer">
+        <span id="sidebar-quota-text">1 chat tersimpan • Kuota: 5/5</span>
+      </div>
+    </aside>
+
+    <!-- Main Chat Window -->
+    <main id="main-content">
+      <!-- Top Navbar -->
+      <header class="top-navbar">
+        <div class="nav-left">
+          <button id="btn-toggle-sidebar" class="nav-toggle-btn" title="Toggle Sidebar">☰</button>
+          <img src="/assets/fetty_avatar.svg" class="nav-avatar" alt="Fetty Avatar" />
+          <div>
+            <span id="nav-session-title" class="nav-title">Chat Baru</span>
+          </div>
+        </div>
+        <div class="nav-right">
+          <span id="nav-quota-badge" class="nav-quota-pill">🐾 5/5</span>
+          <a href="https://fathifadhil.me" target="_blank" class="nav-link-portfolio">
+            <span>fathifadhil.me ↗</span>
+          </a>
+        </div>
+      </header>
+
+      <!-- Chat Scroll Container -->
+      <div id="chat-scroll-container" class="chat-scroll-container">
+        <div class="chat-inner">
+
+          <!-- Welcome Hero (Tampil jika sesi belum ada pesan user) -->
+          <div id="welcome-hero" class="welcome-hero">
+            <div class="hero-avatar-wrap">
+              <div class="hero-avatar-glow"></div>
+              <div class="hero-avatar">
+                <img src="/assets/fetty_avatar.svg" alt="Fetty" />
+              </div>
+            </div>
+            <h2 id="hero-title" class="hero-title">Ada yang ingin kamu tanyakan seputar Fathi Fadhil?</h2>
+            <p id="hero-subtitle" class="hero-subtitle">
+              Asisten AI resmi portofolio Fathi Fadhil. Cari tahu seputar proyek unggulan, tech stack, alur pengembangan sistem, hingga pengalaman kerja!
+            </p>
+
+            <!-- 6 Hero Cards -->
+            <div class="hero-cards-grid" id="hero-cards-container"></div>
+
+            <!-- Quick Pills -->
+            <div class="quick-pills-row" id="quick-pills-container"></div>
+          </div>
+
+          <!-- Messages List -->
+          <div id="messages-list" class="chat-messages-list"></div>
+
+          <!-- Thinking Skeleton -->
+          <div id="thinking-skeleton" class="message-row assistant" style="display: none; margin-top: 1rem;">
+            <img src="/assets/fetty_avatar.svg" class="message-avatar" alt="Fetty" />
+            <div class="skeleton-box">
+              <div class="thinking-pill">
+                <span>🐱</span>
+                <span id="txt-thinking-label">Fetty lagi mikir...</span>
+                <span class="pulse-dot"></span>
+                <span class="pulse-dot"></span>
+                <span class="pulse-dot"></span>
+              </div>
+              <div class="skeleton-bars">
+                <div class="skeleton-bar w-full"></div>
+                <div class="skeleton-bar w-3-4"></div>
+                <div class="skeleton-bar w-1-2"></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Bottom Spacer -->
+          <div class="chat-bottom-spacer"></div>
+        </div>
+      </div>
+
+      <!-- Floating Bottom Input -->
+      <div class="chat-input-wrapper">
+        <div class="chat-input-inner">
+          <form id="chat-form" class="chat-input-box" onsubmit="handleChatSubmit(event)">
+            <input
+              id="chat-input"
+              type="text"
+              class="chat-input-field"
+              placeholder="Ketik pertanyaan kamu seputar portofolio Fathi..."
+              autocomplete="off"
+            />
+            <button id="btn-submit" type="submit" class="btn-send" title="Kirim">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <line x1="22" y1="2" x2="11" y2="13"></line>
+                <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+              </svg>
+            </button>
+          </form>
+          <div class="chat-footer-caption">
+            Fetty Assistant can make mistakes. Verify info at <a href="https://fathifadhil.me" target="_blank" style="color: var(--brand-primary); text-decoration: none;">fathifadhil.me</a>.
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <script>
+    // --- State Global ---
+    let isEn = false;
+    let sessions = {};
+    let activeSessionId = null;
+    let isGenerating = false;
+    let dailyQuota = 5;
+    let remainingQuota = 5;
+
+    // Data Kartu Hero
+    const HERO_CARDS = {
+      en: [
+        { icon: "📁", title: "Featured Projects", desc: "Key production apps & full-stack systems", prompt: "What are Fathi's most notable engineering projects and what problems did they solve?" },
+        { icon: "⚡", title: "Tech Stack & Skills", desc: "Flutter, Next.js, Python, TypeScript & Cloud", prompt: "What core tech stack and tools does Fathi specialize in?" },
+        { icon: "🚀", title: "Dev Workflow", desc: "From concept to production-ready product", prompt: "How does Fathi take an idea from concept to a production-ready product?" },
+        { icon: "📜", title: "Certifications", desc: "Professional licenses & verified credentials", prompt: "What professional certifications and licenses does Fathi hold?" },
+        { icon: "💼", title: "Work Experience", desc: "Engineering journey & professional background", prompt: "Can you summarize Fathi's work experience and engineering journey?" },
+        { icon: "🌐", title: "Connect & Links", desc: "Official social links & collaboration", prompt: "Where can I find Fathi Fadhil's official social media and contact links?" }
+      ],
+      id: [
+        { icon: "📁", title: "Projek Unggulan", desc: "Sistem produksi & aplikasi full-stack", prompt: "Boleh ceritakan apa saja proyek-proyek unggulan yang pernah dikerjakan oleh Fathi?" },
+        { icon: "⚡", title: "Tech Stack & Keahlian", desc: "Flutter, Next.js, Python, TypeScript & Cloud", prompt: "Teknologi dan tech stack apa saja yang dikuasai oleh Fathi?" },
+        { icon: "🚀", title: "Alur Kerja Dev", desc: "Dari rancangan arsitektur hingga rilis", prompt: "Bagaimana workflow dan metodologi Fathi dari ide hingga menjadi produk?" },
+        { icon: "📜", title: "Sertifikasi", desc: "Lisensi profesional & kredensial terverifikasi", prompt: "Apa saja sertifikasi profesional dan lisensi yang dimiliki oleh Fathi?" },
+        { icon: "💼", title: "Pengalaman Kerja", desc: "Perjalanan rekayasa & latar belakang profesional", prompt: "Bagaimana riwayat pengalaman kerja dan perjalanan profesional Fathi?" },
+        { icon: "🌐", title: "Kontak & Kolaborasi", desc: "Tautan media sosial & kontak resmi", prompt: "Di mana saja tautan media sosial dan kontak resmi Fathi Fadhil untuk terhubung?" }
+      ]
+    };
+
+    const QUICK_PILLS = {
+      en: ["📁 Projects", "⚡ Tech Stack", "🚀 Workflow", "📜 Certificates", "💼 Experience", "🌐 Connect"],
+      id: ["📁 Projek", "⚡ Tech Stack", "🚀 Alur Kerja", "📜 Sertifikat", "💼 Pengalaman", "🌐 Kontak"]
+    };
+
+    // --- Inisialisasi State & LocalStorage ---
+    function initApp() {
+      // Load kuota harian dari localStorage
+      const today = new Date().toISOString().slice(0, 10);
+      const quotaRecord = JSON.parse(localStorage.getItem('fetty_quota') || '{}');
+      if (quotaRecord.date === today) {
+        remainingQuota = quotaRecord.remaining !== undefined ? quotaRecord.remaining : 5;
+      } else {
+        remainingQuota = 5;
+        localStorage.setItem('fetty_quota', JSON.stringify({ date: today, remaining: 5 }));
+      }
+
+      // Load sessions
+      const savedSessions = JSON.parse(localStorage.getItem('fetty_sessions') || '{}');
+      if (Object.keys(savedSessions).length > 0) {
+        sessions = savedSessions;
+        activeSessionId = Object.keys(sessions)[0];
+      } else {
+        createNewChat(false);
+      }
+
+      // Check URL lang
+      const params = new URLSearchParams(window.location.search);
+      if (params.get('lang') === 'en') {
+        isEn = true;
+      }
+
+      updateLanguageUI();
+      renderSessionsList();
+      renderActiveSession();
+      updateQuotaUI();
+
+      // Sidebar Mobile Toggle
+      const sidebar = document.getElementById('sidebar');
+      const overlay = document.getElementById('sidebar-overlay');
+      const toggleBtn = document.getElementById('btn-toggle-sidebar');
+
+      toggleBtn.addEventListener('click', () => {
+        sidebar.classList.toggle('collapsed');
+        overlay.classList.toggle('active');
+      });
+
+      overlay.addEventListener('click', () => {
+        sidebar.classList.add('collapsed');
+        overlay.classList.remove('active');
+      });
+    }
+
+    // --- Quota & Language Helpers ---
+    function updateQuotaUI() {
+      const qText = `${remainingQuota}/5`;
+      document.getElementById('nav-quota-badge').textContent = `🐾 ${qText}`;
+      const totalSess = Object.keys(sessions).length;
+      document.getElementById('sidebar-quota-text').textContent = isEn
+        ? `${totalSess} chats saved • Quota: ${qText}`
+        : `${totalSess} chat tersimpan • Kuota: ${qText}`;
+
+      const input = document.getElementById('chat-input');
+      if (remainingQuota <= 0) {
+        input.disabled = true;
+        input.placeholder = isEn ? "Daily quota reached (5/5 today)" : "Batas kuota harian habis (5/5 hari ini)";
+      }
+    }
+
+    function recordQuestionUsage() {
+      const today = new Date().toISOString().slice(0, 10);
+      remainingQuota = Math.max(0, remainingQuota - 1);
+      localStorage.setItem('fetty_quota', JSON.stringify({ date: today, remaining: remainingQuota }));
+      updateQuotaUI();
+    }
+
+    function setLanguage(toEn) {
+      isEn = toEn;
+      updateLanguageUI();
+      renderHeroCards();
+      renderQuickPills();
+      updateQuotaUI();
+    }
+
+    function updateLanguageUI() {
+      document.getElementById('lang-en').classList.toggle('active', isEn);
+      document.getElementById('lang-id').classList.toggle('active', !isEn);
+      document.getElementById('txt-new-chat').textContent = isEn ? "New Chat" : "Chat Baru";
+      document.getElementById('txt-history-title').textContent = isEn ? "Chat History" : "Riwayat Percakapan";
+      document.getElementById('hero-title').textContent = isEn
+        ? "How can Fetty help with Fathi's work today?"
+        : "Ada yang ingin kamu tanyakan seputar Fathi Fadhil?";
+      document.getElementById('hero-subtitle').textContent = isEn
+        ? "Interactive AI companion for Fathi Fadhil's engineering portfolio. Ask about featured projects, full-stack tech stack, dev workflow, or work experience!"
+        : "Asisten AI resmi portofolio Fathi Fadhil. Cari tahu seputar proyek unggulan, tech stack, alur pengembangan sistem, hingga pengalaman kerja!";
+      document.getElementById('txt-thinking-label').textContent = isEn ? "Fetty is thinking..." : "Fetty lagi mikir...";
+      
+      const input = document.getElementById('chat-input');
+      if (remainingQuota > 0) {
+        input.placeholder = isEn ? "Ask anything about Fathi's projects, tech stack..." : "Ketik pertanyaan kamu seputar portofolio Fathi...";
+      }
+
+      renderHeroCards();
+      renderQuickPills();
+    }
+
+    // --- Render Hero Cards & Quick Pills ---
+    function renderHeroCards() {
+      const container = document.getElementById('hero-cards-container');
+      container.innerHTML = '';
+      const cards = isEn ? HERO_CARDS.en : HERO_CARDS.id;
+      cards.forEach(c => {
+        const div = document.createElement('div');
+        div.className = 'hero-card';
+        div.innerHTML = `
+          <div class="hero-card-icon">${c.icon}</div>
+          <div class="hero-card-title">${c.title}</div>
+          <div class="hero-card-desc">${c.desc}</div>
+        `;
+        div.onclick = () => sendUserMessage(c.prompt);
+        container.appendChild(div);
+      });
+    }
+
+    function renderQuickPills() {
+      const container = document.getElementById('quick-pills-container');
+      container.innerHTML = '';
+      const pills = isEn ? QUICK_PILLS.en : QUICK_PILLS.id;
+      const cards = isEn ? HERO_CARDS.en : HERO_CARDS.id;
+      pills.forEach((p, idx) => {
+        const btn = document.createElement('button');
+        btn.className = 'quick-pill';
+        btn.textContent = p;
+        btn.onclick = () => sendUserMessage(cards[idx].prompt);
+        container.appendChild(btn);
+      });
+    }
+
+    // --- Session Management ---
+    function createNewChat(switchNow = true) {
+      const id = 'sess_' + Date.now();
+      const defaultTitle = isEn ? "New Chat" : "Chat Baru";
+      sessions[id] = {
+        id,
+        title: defaultTitle,
+        created: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+        messages: []
+      };
+      saveSessions();
+      if (switchNow) {
+        activeSessionId = id;
+        renderSessionsList();
+        renderActiveSession();
+      }
+    }
+
+    function saveSessions() {
+      localStorage.setItem('fetty_sessions', JSON.stringify(sessions));
+    }
+
+    function renderSessionsList() {
+      const list = document.getElementById('sessions-list');
+      list.innerHTML = '';
+      const sids = Object.keys(sessions).reverse();
+
+      sids.forEach(sid => {
+        const sess = sessions[sid];
+        const isActive = sid === activeSessionId;
+        const item = document.createElement('div');
+        item.className = `session-item ${isActive ? 'active' : ''}`;
+        item.innerHTML = `
+          <span class="session-item-title">${sess.title}</span>
+          <button class="session-del-btn" title="Hapus" onclick="deleteSession(event, '${sid}')">✕</button>
+        `;
+        item.onclick = (e) => {
+          if (!e.target.classList.contains('session-del-btn')) {
+            activeSessionId = sid;
+            renderSessionsList();
+            renderActiveSession();
+          }
+        };
+        list.appendChild(item);
+      });
+      updateQuotaUI();
+    }
+
+    function deleteSession(e, sid) {
+      e.stopPropagation();
+      delete sessions[sid];
+      if (Object.keys(sessions).length === 0) {
+        createNewChat(true);
+      } else if (activeSessionId === sid) {
+        activeSessionId = Object.keys(sessions)[0];
+      }
+      saveSessions();
+      renderSessionsList();
+      renderActiveSession();
+    }
+
+    function renderActiveSession() {
+      const sess = sessions[activeSessionId];
+      if (!sess) return;
+      document.getElementById('nav-session-title').textContent = sess.title;
+
+      const welcomeHero = document.getElementById('welcome-hero');
+      const messagesList = document.getElementById('messages-list');
+      messagesList.innerHTML = '';
+
+      if (sess.messages.length === 0) {
+        welcomeHero.style.display = 'block';
+      } else {
+        welcomeHero.style.display = 'none';
+        sess.messages.forEach(m => appendMessageToDOM(m.role, m.content, m.time));
+      }
+      scrollToBottom();
+    }
+
+    function appendMessageToDOM(role, content, timeStr) {
+      const messagesList = document.getElementById('messages-list');
+      const row = document.createElement('div');
+      row.className = `message-row ${role}`;
+
+      const avatarSrc = role === 'user' ? '/assets/user_avatar.svg' : '/assets/fetty_avatar.svg';
+      const parsed = role === 'assistant' ? marked.parse(content || '') : content.replace(/&/g, '&amp;').replace(/</g, '&lt;');
+
+      if (role === 'assistant') {
+        row.innerHTML = `
+          <img src="${avatarSrc}" class="message-avatar" alt="Fetty" />
+          <div class="message-bubble">
+            <div class="bot-md">${parsed}</div>
+            <div class="message-time">${timeStr}</div>
+          </div>
+        `;
+      } else {
+        row.innerHTML = `
+          <div class="message-bubble">
+            <div style="white-space: pre-wrap; word-break: break-word;">${parsed}</div>
+            <div class="message-time">${timeStr}</div>
+          </div>
+          <img src="${avatarSrc}" class="message-avatar" alt="User" />
+        `;
+      }
+      messagesList.appendChild(row);
+      scrollToBottom();
+    }
+
+    function scrollToBottom() {
+      const container = document.getElementById('chat-scroll-container');
+      container.scrollTop = container.scrollHeight;
+    }
+
+    // --- Kirim Pesan & Hubungkan ke /api/chat ---
+    async function handleChatSubmit(e) {
+      e.preventDefault();
+      const input = document.getElementById('chat-input');
+      const text = input.value.trim();
+      if (!text || isGenerating) return;
+      input.value = '';
+      sendUserMessage(text);
+    }
+
+    async function sendUserMessage(text) {
+      if (remainingQuota <= 0) {
+        alert(isEn ? "Daily quota of 5 questions reached!" : "Batas 5 pertanyaan harian telah tercapai.");
+        return;
+      }
+      if (isGenerating) return;
+
+      const sess = sessions[activeSessionId];
+      if (!sess) return;
+
+      // Hide Hero
+      document.getElementById('welcome-hero').style.display = 'none';
+
+      const nowTime = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+
+      // Tambahkan pesan User
+      const userMsg = { role: 'user', content: text, time: nowTime };
+      sess.messages.push(userMsg);
+      appendMessageToDOM('user', text, nowTime);
+
+      // Otomatis judul sesi dari pertanyaan pertama
+      if (sess.title === "Chat Baru" || sess.title === "New Chat") {
+        sess.title = text.length > 24 ? text.slice(0, 24) + '...' : text;
+        document.getElementById('nav-session-title').textContent = sess.title;
+        renderSessionsList();
+      }
+
+      saveSessions();
+      recordQuestionUsage();
+
+      // Show Thinking Skeleton
+      isGenerating = true;
+      document.getElementById('btn-submit').disabled = true;
+      const skeleton = document.getElementById('thinking-skeleton');
+      skeleton.style.display = 'flex';
+      scrollToBottom();
+
+      try {
+        // Multi-turn history payload
+        const historyPayload = sess.messages.slice(0, -1).map(m => ({
+          role: m.role === 'assistant' ? 'model' : 'user',
+          content: m.content
+        }));
+
+        const res = await fetch('/api/chat', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            message: text,
+            history: historyPayload
+          })
+        });
+
+        if (!res.ok) {
+          const errData = await res.json().catch(() => ({}));
+          throw new Error(errData.message || `Server error (${res.status})`);
+        }
+
+        const data = await res.json();
+        const replyText = data.reply || (isEn ? "No response received meow~ 😿" : "Tidak ada respon nyaa~ 😿");
+
+        const botMsg = { role: 'assistant', content: replyText, time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) };
+        sess.messages.push(botMsg);
+        saveSessions();
+        appendMessageToDOM('assistant', replyText, botMsg.time);
+      } catch (err) {
+        console.error(err);
+        const errReply = isEn
+          ? `Sorry meow 😿, there was an issue: ${err.message}. Please try again!`
+          : `Waduh meow 😿, ada kendala: ${err.message}. Silakan coba lagi ya!`;
+        const botMsg = { role: 'assistant', content: errReply, time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) };
+        sess.messages.push(botMsg);
+        saveSessions();
+        appendMessageToDOM('assistant', errReply, botMsg.time);
+      } finally {
+        isGenerating = false;
+        skeleton.style.display = 'none';
+        document.getElementById('btn-submit').disabled = false;
+        scrollToBottom();
+        document.getElementById('chat-input').focus();
+      }
+    }
+
+    // Jalankan aplikasi saat halaman termuat
+    window.onload = initApp;
+  </script>
+</body>
 </html>
