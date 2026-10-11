@@ -139,35 +139,48 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     let responseText: string | null = null;
     let lastError: any = null;
 
+    const CANDIDATE_MODELS = [
+      'gemini-3.5-flash-lite',
+      'gemini-3.1-flash-lite',
+    ];
+
     for (let i = 0; i < apiKeys.length; i++) {
       const currentKey = apiKeys[i];
-      try {
-        const genAI = new GoogleGenerativeAI(currentKey);
-        const model = genAI.getGenerativeModel({
-          model: 'gemini-1.5-flash',
-          systemInstruction: BASE_SYSTEM_INSTRUCTION,
-          generationConfig: {
-            temperature: 0.3,
-            topP: 0.95,
-            maxOutputTokens: 1000,
-          },
-        });
+      const genAI = new GoogleGenerativeAI(currentKey);
 
-        const chat = model.startChat({
-          history: formattedHistory,
-        });
+      for (const modelName of CANDIDATE_MODELS) {
+        try {
+          const model = genAI.getGenerativeModel({
+            model: modelName,
+            systemInstruction: BASE_SYSTEM_INSTRUCTION,
+            generationConfig: {
+              temperature: 0.3,
+              topP: 0.95,
+              maxOutputTokens: 1000,
+            },
+          });
 
-        const result = await chat.sendMessage(userMessage);
-        responseText = result.response.text();
+          const chat = model.startChat({
+            history: formattedHistory,
+          });
 
-        if (responseText) {
-          break; // Berhasil mendapatkan jawaban!
+          const result = await chat.sendMessage(userMessage);
+          responseText = result.response.text();
+
+          if (responseText) {
+            break; // Berhasil mendapatkan jawaban!
+          }
+        } catch (err: any) {
+          lastError = err;
+          console.warn(`Model ${modelName} dengan key index ${i} gagal: ${err?.message}`);
         }
-      } catch (err: any) {
-        lastError = err;
-        console.warn(`Key index ${i} gagal: ${err?.message}. Mencoba key berikutnya...`);
+      }
+
+      if (responseText) {
+        break; // Berhasil, keluar dari loop key
       }
     }
+
 
     if (!responseText) {
       throw lastError || new Error('Semua API key gagal memproses respons.');
