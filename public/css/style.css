@@ -354,6 +354,11 @@ aside#sidebar {
 .session-item:hover .session-actions { opacity: 1; }
 @media (max-width: 768px) {
   .session-actions { opacity: 1; }
+  .session-action-btn {
+    width: 28px;
+    height: 28px;
+    font-size: 0.95rem;
+  }
 }
 .session-action-btn {
   background: transparent;
@@ -456,6 +461,8 @@ main#main-content {
   display: inline-flex;
   align-items: center;
   gap: 4px;
+  white-space: nowrap;
+  flex-shrink: 0;
 }
 .nav-quota-pill i { font-size: 0.78rem; }
 
@@ -589,6 +596,219 @@ main#main-content {
 @keyframes slideToastIn {
   from { opacity: 0; transform: translateY(-8px) scale(0.97); }
   to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+/* Modal Dialog Kustom (Modern Alert Replacement) */
+.app-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.58);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 1.25rem;
+  animation: modalFadeIn 0.2s ease forwards;
+}
+
+.app-modal-card {
+  background: var(--bg-surface);
+  width: 100%;
+  max-width: 430px;
+  border-radius: 20px;
+  border: 1px solid var(--border-color);
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25), 0 0 0 1px rgba(0, 0, 0, 0.04);
+  padding: 1.75rem 1.6rem 1.5rem 1.6rem;
+  position: relative;
+  text-align: center;
+  animation: modalPopIn 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.app-modal-close {
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  border: none;
+  background: #f1f5f9;
+  color: var(--text-muted);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.15rem;
+  transition: all 0.15s ease;
+}
+.app-modal-close:hover {
+  background: #e2e8f0;
+  color: var(--text-main);
+  transform: scale(1.05);
+}
+
+.app-modal-icon-wrapper {
+  width: 58px;
+  height: 58px;
+  border-radius: 18px;
+  background: #ecfdf5;
+  border: 1px solid #a7f3d0;
+  color: #059669;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.8rem;
+  margin-bottom: 0.9rem;
+}
+.app-modal-icon-wrapper.warning {
+  background: #fffbeb;
+  border-color: #fde68a;
+  color: #d97706;
+}
+.app-modal-icon-wrapper.info {
+  background: #eff6ff;
+  border-color: #bfdbfe;
+  color: #2563eb;
+}
+
+.app-modal-badge {
+  display: inline-block;
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  font-weight: 600;
+  padding: 3px 10px;
+  border-radius: var(--radius-pill);
+  background: #f8fafc;
+  color: var(--text-muted);
+  border: 1px solid var(--border-color);
+  margin-bottom: 0.5rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.app-modal-title {
+  font-size: 1.18rem;
+  font-weight: 700;
+  color: var(--text-main);
+  margin: 0 0 0.5rem 0;
+  line-height: 1.35;
+}
+
+.app-modal-desc {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  margin: 0 0 1.15rem 0;
+  line-height: 1.5;
+}
+
+.app-modal-callout {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 14px;
+  padding: 0.9rem 1rem;
+  text-align: left;
+  margin-bottom: 1.25rem;
+}
+.app-modal-callout .callout-header {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--text-main);
+  margin-bottom: 4px;
+}
+.app-modal-callout .callout-header i {
+  color: #059669;
+  font-size: 1rem;
+}
+.app-modal-callout p {
+  font-size: 0.76rem;
+  color: var(--text-soft);
+  margin: 0 0 0.75rem 0;
+  line-height: 1.45;
+}
+.callout-links {
+  display: flex;
+  gap: 0.5rem;
+}
+.modal-link-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 0.76rem;
+  font-weight: 600;
+  padding: 6px 12px;
+  border-radius: 8px;
+  text-decoration: none;
+  transition: all 0.15s ease;
+}
+.modal-link-btn.primary {
+  background: #10b981;
+  color: #ffffff;
+}
+.modal-link-btn.primary:hover {
+  background: #059669;
+  transform: translateY(-1px);
+}
+.modal-link-btn.secondary {
+  background: #ffffff;
+  color: var(--text-main);
+  border: 1px solid #cbd5e1;
+}
+.modal-link-btn.secondary:hover {
+  background: #f1f5f9;
+  border-color: #94a3b8;
+  transform: translateY(-1px);
+}
+
+.app-modal-actions {
+  display: flex;
+  gap: 0.5rem;
+}
+.btn-modal-primary {
+  flex: 1;
+  height: 42px;
+  background: var(--brand-primary);
+  color: #ffffff;
+  border: none;
+  border-radius: 10px;
+  font-size: 0.88rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+.btn-modal-primary:hover {
+  background: var(--brand-dark);
+  transform: translateY(-1px);
+}
+.btn-modal-primary:active {
+  transform: scale(0.98);
+}
+
+@keyframes modalFadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+@keyframes modalPopIn {
+  from { opacity: 0; transform: scale(0.92) translateY(10px); }
+  to { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+@media (max-width: 480px) {
+  .app-modal-card {
+    padding: 1.35rem 1.15rem 1.25rem 1.15rem;
+    border-radius: 18px;
+  }
+  .callout-links {
+    flex-direction: column;
+  }
+  .modal-link-btn {
+    justify-content: center;
+    padding: 8px 12px;
+  }
 }
 
 /* Area chat */
@@ -1058,25 +1278,110 @@ main#main-content {
   font-weight: 500;
 }
 
+/* Responsif Tablet & Layar Menengah */
+@media (max-width: 768px) {
+  #nav-quota-badge { display: none !important; }
+  .btn-action-label { display: none !important; }
+  .btn-action {
+    width: 34px;
+    height: 34px;
+    padding: 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: var(--radius-sm);
+    flex-shrink: 0;
+  }
+  .btn-action i {
+    font-size: 1.05rem;
+  }
+  .nav-link-portfolio span { display: none; }
+  .nav-link-portfolio {
+    width: 34px;
+    height: 34px;
+    padding: 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: var(--radius-sm);
+    flex-shrink: 0;
+  }
+  .nav-link-portfolio i {
+    font-size: 1rem;
+  }
+}
+
 /* Responsif Mobile */
 @media (max-width: 640px) {
+  #nav-quota-badge { display: none !important; }
   .top-navbar {
-    height: 50px;
-    padding: 0 0.55rem;
+    height: 52px;
+    padding: 0 0.65rem;
   }
-  .nav-avatar { width: 24px; height: 24px; }
+  .nav-default-bar {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem;
+  }
+  .nav-left {
+    min-width: 0;
+    flex: 1;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    overflow: hidden;
+  }
+  .nav-avatar {
+    width: 26px;
+    height: 26px;
+    flex-shrink: 0;
+  }
   .nav-title {
-    max-width: 95px;
+    max-width: 100%;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
-    font-size: 0.8rem;
+    font-size: 0.84rem;
+    font-weight: 600;
   }
-  .btn-action-label { display: none !important; }
-  .btn-action { padding: 0 7px; height: 30px; }
-  .nav-quota-pill { font-size: 0.68rem; padding: 2px 6px; }
-  .nav-link-portfolio span { display: none; }
-  .nav-link-portfolio { padding: 4px 7px; }
+  .nav-right {
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+    flex-shrink: 0;
+  }
+  .btn-action {
+    width: 32px;
+    height: 32px;
+    padding: 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: var(--radius-sm);
+    flex-shrink: 0;
+  }
+  .btn-action i {
+    font-size: 1rem;
+  }
+  .nav-link-portfolio {
+    width: 32px;
+    height: 32px;
+    padding: 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: var(--radius-sm);
+    flex-shrink: 0;
+  }
+  .nav-link-portfolio i {
+    font-size: 1rem;
+  }
+  .slide-track-text {
+    font-size: 0.72rem;
+    gap: 4px;
+  }
   .chat-scroll-container { padding: 0.75rem 0.65rem 0 0.65rem; }
   .welcome-hero { padding: 0.5rem 0 0.5rem 0; }
   .hero-dossier-header { gap: 10px; margin-bottom: 0.75rem; }
@@ -1097,3 +1402,32 @@ main#main-content {
   .btn-icon-md { width: 34px; height: 34px; }
   .chat-bottom-spacer { height: 105px; }
 }
+
+/* Responsif Layar Kecil (<= 380px) */
+@media (max-width: 380px) {
+  .top-navbar {
+    padding: 0 0.45rem;
+  }
+  .nav-default-bar {
+    gap: 0.35rem;
+  }
+  .nav-left {
+    gap: 0.35rem;
+  }
+  .nav-avatar {
+    width: 22px;
+    height: 22px;
+  }
+  .nav-title {
+    font-size: 0.78rem;
+  }
+  .nav-right {
+    gap: 0.25rem;
+  }
+  .btn-action,
+  .nav-link-portfolio {
+    width: 30px;
+    height: 30px;
+  }
+}
+

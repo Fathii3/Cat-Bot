@@ -14,13 +14,14 @@ let sessions = {};
 let activeSessionId = null;
 let isGenerating = false;
 let remainingQuota = 5;
+let quotaResetAt = null;
 
 // Data direktori topik & prompt unggulan
 const HERO_CARDS = {
   en: [
     {
       tag: "FEATURED SYSTEMS",
-      icon: "ri-folder-code-line",
+      icon: "ri-code-box-line",
       title: "Production Projects",
       desc: "FINARA (Offline-First POS & Gemini AI), SKM Langkat (Public Survey), Dist & SiBanjir.",
       prompt: "What are Fathi's most notable engineering projects and what architectures did they use?"
@@ -50,7 +51,7 @@ const HERO_CARDS = {
   id: [
     {
       tag: "SISTEM PRODUKSI",
-      icon: "ri-folder-code-line",
+      icon: "ri-code-box-line",
       title: "Proyek & Aplikasi Unggulan",
       desc: "FINARA (Offline-First POS & Gemini AI), SKM Langkat (Survei IKM Diskominfo), Dist & SiBanjir.",
       prompt: "Boleh ceritakan arsitektur dan solusi teknis pada proyek-proyek unggulan Fathi Fadhil?"
@@ -98,22 +99,69 @@ const QUICK_PILLS = {
   ]
 };
 
-// Inisialisasi aplikasi
-function initApp() {
-  // Kuota harian
+// Pengelolaan kuota bergulir 12 jam (WIB / GMT+7)
+function formatWibTime(timestamp) {
+  if (!timestamp) return '12 jam lagi';
   try {
-    const today = new Date().toISOString().slice(0, 10);
+    const formatter = new Intl.DateTimeFormat('id-ID', {
+      timeZone: 'Asia/Jakarta',
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: false
+    });
+    return `${formatter.format(new Date(timestamp)).replace('.', ':')} WIB`;
+  } catch (e) {
+    const d = new Date(timestamp);
+    const utc = d.getTime() + (d.getTimezoneOffset() * 60000);
+    const wib = new Date(utc + (3600000 * 7));
+    const h = String(wib.getHours()).padStart(2, '0');
+    const m = String(wib.getMinutes()).padStart(2, '0');
+    return `${h}:${m} WIB`;
+  }
+}
+
+function getNextResetTimeWib() {
+  if (!quotaResetAt) {
+    // Estimasi 12 jam dari waktu sekarang jika belum mulai dipakai
+    return formatWibTime(Date.now() + (12 * 60 * 60 * 1000));
+  }
+  return formatWibTime(quotaResetAt);
+}
+
+function checkAndResetQuota() {
+  const now = Date.now();
+  try {
     const quotaRecord = JSON.parse(localStorage.getItem('fetty_quota') || '{}');
-    if (quotaRecord.date === today) {
-      remainingQuota = quotaRecord.remaining !== undefined ? quotaRecord.remaining : 5;
-    } else {
+    if (quotaRecord.resetAt && now >= quotaRecord.resetAt) {
+      // Waktu 12 jam sejak limit tercapai telah usai! Reset kembali ke 5
       remainingQuota = 5;
-      localStorage.setItem('fetty_quota', JSON.stringify({ date: today, remaining: 5 }));
+      quotaResetAt = null;
+      localStorage.setItem('fetty_quota', JSON.stringify({ remaining: 5, resetAt: null }));
+    } else if (quotaRecord.resetAt && now < quotaRecord.resetAt) {
+      // Masih dalam masa cooldown 12 jam setelah limit tercapai
+      remainingQuota = 0;
+      quotaResetAt = quotaRecord.resetAt;
+    } else {
+      // Belum mencapai limit
+      remainingQuota = typeof quotaRecord.remaining === 'number' ? Math.max(0, quotaRecord.remaining) : 5;
+      if (remainingQuota === 0) {
+        quotaResetAt = now + (12 * 60 * 60 * 1000);
+        localStorage.setItem('fetty_quota', JSON.stringify({ remaining: 0, resetAt: quotaResetAt }));
+      } else {
+        quotaResetAt = null;
+      }
     }
   } catch (e) {
     console.warn("Storage quota error:", e);
     remainingQuota = 5;
+    quotaResetAt = null;
   }
+}
+
+// Inisialisasi aplikasi
+function initApp() {
+  // Kuota 12 jam bergulir (WIB)
+  checkAndResetQuota();
 
   // Riwayat chat lokal
   try {
@@ -146,6 +194,15 @@ function initApp() {
   updateQuotaUI();
   initSlideDeleteEvents();
   initSpeechRecognition();
+
+  const inputBox = document.querySelector('.chat-input-box');
+  if (inputBox) {
+    inputBox.addEventListener('click', () => {
+      if (remainingQuota <= 0) {
+        showQuotaExceededModal();
+      }
+    });
+  }
 
   // Toggle sidebar
   const sidebar = document.getElementById('sidebar');
@@ -201,33 +258,154 @@ function showToast(msg, duration = 2800) {
   }, duration);
 }
 
+// Modal popup modern pengganti alert
+function openAppModal({
+  icon = 'ri-flashlight-line',
+  iconType = 'default',
+  badge = 'NOTIFIKASI',
+  title = 'Informasi',
+  desc = '',
+  showCallout = true,
+  calloutHeader = 'Ingin diskusi proyek atau freelance langsung?',
+  calloutDesc = 'Hubungi Fathi langsung via WhatsApp resmi atau telusuri portofolio lengkapnya.',
+  confirmText = 'Mengerti',
+  onConfirm = null
+}) {
+  const modal = document.getElementById('app-modal');
+  if (!modal) return;
+
+  const iconBox = document.getElementById('modal-icon-box');
+  if (iconBox) {
+    iconBox.className = 'app-modal-icon-wrapper ' + (iconType !== 'default' ? iconType : '');
+  }
+  const iconEl = document.getElementById('modal-icon');
+  if (iconEl) iconEl.className = icon;
+
+  const badgeEl = document.getElementById('modal-badge');
+  if (badgeEl) badgeEl.textContent = badge;
+
+  const titleEl = document.getElementById('modal-title');
+  if (titleEl) titleEl.textContent = title;
+
+  const descEl = document.getElementById('modal-desc');
+  if (descEl) descEl.textContent = desc;
+
+  const calloutEl = document.getElementById('modal-callout');
+  if (calloutEl) {
+    calloutEl.style.display = showCallout ? 'block' : 'none';
+    const ch = calloutEl.querySelector('.callout-header span');
+    if (ch) ch.textContent = calloutHeader;
+    const cd = calloutEl.querySelector('p');
+    if (cd) cd.textContent = calloutDesc;
+  }
+
+  const btnConfirm = document.getElementById('modal-btn-confirm');
+  if (btnConfirm) {
+    btnConfirm.textContent = confirmText;
+    btnConfirm.onclick = () => {
+      closeAppModal();
+      if (typeof onConfirm === 'function') onConfirm();
+    };
+  }
+
+  modal.style.display = 'flex';
+  document.body.style.overflow = 'hidden';
+}
+
+function closeAppModal(e) {
+  if (e && e.target && e.target !== e.currentTarget && !e.target.closest('.app-modal-close') && !e.target.closest('#modal-btn-confirm')) {
+    return;
+  }
+  const modal = document.getElementById('app-modal');
+  if (modal) {
+    modal.style.display = 'none';
+    document.body.style.overflow = '';
+  }
+}
+
+function showQuotaExceededModal() {
+  const nextReset = getNextResetTimeWib();
+  openAppModal({
+    icon: 'ri-flashlight-line',
+    iconType: 'warning',
+    badge: isEn ? 'QUOTA LIMIT REACHED' : 'BATAS LIMIT TERCAPAI',
+    title: isEn ? 'Limit Reached (5 Questions)' : 'Batas 5 Pertanyaan Tercapai',
+    desc: isEn
+      ? `You have reached the 5-question limit. Your quota will reset 12 hours from now at ${nextReset}.`
+      : `Kamu telah mencapai batas limit 5 pertanyaan. Kuota kamu akan direset 12 jam dari sekarang pada pukul ${nextReset}.`,
+    showCallout: true,
+    calloutHeader: isEn ? 'Need direct collaboration or freelance project?' : 'Ingin diskusi proyek atau freelance langsung?',
+    calloutDesc: isEn
+      ? 'Reach out to Fathi directly via WhatsApp or browse his complete portfolio.'
+      : 'Hubungi Fathi langsung via WhatsApp resmi atau telusuri portofolio lengkapnya.',
+    confirmText: isEn ? 'Got it' : 'Mengerti'
+  });
+}
+
 // Kuota & bahasa
 function updateQuotaUI() {
+  checkAndResetQuota();
   const qText = `${remainingQuota}/5`;
   const badge = document.getElementById('nav-quota-badge');
   if (badge) {
-    badge.innerHTML = `<i class="ri-flashlight-line"></i> <span id="nav-quota-val">${qText} ${isEn ? 'left' : 'sisa'}</span>`;
+    const label = isEn ? 'Quota: ' : 'Sisa Kuota: ';
+    badge.innerHTML = `<i class="ri-flashlight-line"></i> <span id="nav-quota-val"><span class="quota-label">${label}</span><span class="quota-val">${qText}</span></span>`;
+    if (quotaResetAt) {
+      const nextReset = getNextResetTimeWib();
+      badge.title = isEn
+        ? `Limit reached (Resets at ${nextReset})`
+        : `Batas limit tercapai (Reset pukul ${nextReset})`;
+    } else {
+      badge.title = isEn
+        ? "5 questions quota (12-hour cooldown starts once limit is reached)"
+        : "Kuota 5 pertanyaan (Reset 12 jam dihitung saat limit tercapai)";
+    }
   }
   const totalSess = Object.keys(sessions).length;
   const sidebarQuota = document.getElementById('sidebar-quota-text');
   if (sidebarQuota) {
     sidebarQuota.textContent = isEn
       ? `${totalSess} chats saved • Quota: ${qText}`
-      : `${totalSess} chat tersimpan • Kuota: ${qText}`;
+      : `${totalSess} obrolan tersimpan • Kuota: ${qText}`;
+    if (quotaResetAt) {
+      const nextReset = getNextResetTimeWib();
+      sidebarQuota.title = isEn ? `Resets at ${nextReset}` : `Reset pukul ${nextReset}`;
+    } else {
+      sidebarQuota.title = isEn
+        ? "12-hour cooldown starts after limit"
+        : "Reset 12 jam dihitung setelah limit";
+    }
   }
 
   const input = document.getElementById('chat-input');
   if (remainingQuota <= 0) {
+    const nextReset = getNextResetTimeWib();
     input.disabled = true;
-    input.placeholder = isEn ? "Daily quota reached (5/5 today)" : "Batas kuota harian habis (5/5 hari ini)";
+    input.placeholder = isEn
+      ? `Limit reached (5/5). Resets at ${nextReset}`
+      : `Batas kuota habis (5/5). Reset pukul ${nextReset}`;
+  } else {
+    input.disabled = false;
   }
 }
 
 function recordQuestionUsage() {
-  const today = new Date().toISOString().slice(0, 10);
+  checkAndResetQuota();
   remainingQuota = Math.max(0, remainingQuota - 1);
+  const now = Date.now();
+  // Timer 12 jam baru mulai dihitung saat kuota benar-benar habis (limit tercapai)!
+  if (remainingQuota === 0) {
+    if (!quotaResetAt || now >= quotaResetAt) {
+      quotaResetAt = now + (12 * 60 * 60 * 1000); // 12 jam dari saat limit tercapai!
+    }
+  } else {
+    quotaResetAt = null;
+  }
   try {
-    localStorage.setItem('fetty_quota', JSON.stringify({ date: today, remaining: remainingQuota }));
+    localStorage.setItem('fetty_quota', JSON.stringify({
+      remaining: remainingQuota,
+      resetAt: quotaResetAt
+    }));
   } catch (e) { }
   updateQuotaUI();
 }
@@ -244,7 +422,7 @@ function setLanguage(toEn) {
 function updateLanguageUI() {
   document.getElementById('lang-en').classList.toggle('active', isEn);
   document.getElementById('lang-id').classList.toggle('active', !isEn);
-  document.getElementById('txt-new-chat').textContent = isEn ? "New Chat" : "Chat Baru";
+  document.getElementById('txt-new-chat').textContent = isEn ? "New Chat" : "Obrolan Baru";
   document.getElementById('txt-history-title').textContent = isEn ? "Conversation Archive" : "Arsip Percakapan";
   const brandStatus = document.getElementById('txt-brand-status');
   if (brandStatus) {
@@ -259,9 +437,23 @@ function updateLanguageUI() {
   document.getElementById('txt-thinking-label').textContent = isEn ? "Analyzing portfolio knowledge base..." : "Menganalisis basis pengetahuan portofolio...";
 
   const txtBtnDl = document.getElementById('txt-btn-download');
-  if (txtBtnDl) txtBtnDl.textContent = isEn ? "Download .txt" : "Unduh .txt";
+  if (txtBtnDl) txtBtnDl.textContent = isEn ? "Download Chat" : "Unduh Obrolan";
+  const btnDl = document.getElementById('btn-download-chat');
+  if (btnDl) btnDl.title = isEn ? "Download this chat (.txt)" : "Unduh obrolan ini (.txt)";
+
   const txtBtnDel = document.getElementById('txt-btn-delete');
-  if (txtBtnDel) txtBtnDel.textContent = isEn ? "Delete" : "Hapus";
+  if (txtBtnDel) txtBtnDel.textContent = isEn ? "Delete Chat" : "Hapus Obrolan";
+  const btnDel = document.getElementById('btn-trigger-delete');
+  if (btnDel) btnDel.title = isEn ? "Delete this chat" : "Hapus obrolan ini";
+
+  const quotaBadge = document.getElementById('nav-quota-badge');
+  if (quotaBadge) {
+    const nextReset = getNextResetTimeWib();
+    quotaBadge.title = isEn
+      ? `Chat quota (Resets every 12h · Next reset: ${nextReset})`
+      : `Sisa kuota obrolan (Reset setiap 12 jam · Reset berikutnya: ${nextReset})`;
+  }
+
   const txtSlide = document.getElementById('txt-slide-label');
   if (txtSlide) txtSlide.textContent = isEn ? "Swipe right to delete chat" : "Geser ke kanan untuk hapus chat";
 
@@ -334,7 +526,7 @@ function createNewChat(switchNow = true) {
     window.closeMobileSidebar();
   }
   const id = 'sess_' + Date.now();
-  const defaultTitle = isEn ? "New Chat" : "Chat Baru";
+  const defaultTitle = isEn ? "New Chat" : "Obrolan Baru";
   sessions[id] = {
     id,
     title: defaultTitle,
@@ -378,10 +570,10 @@ function renderSessionsList() {
     item.innerHTML = `
       <span class="session-item-title" title="${escapedTitle}">${escapedTitle}</span>
       <div class="session-actions">
-        <button class="session-action-btn dl flex-center" title="Unduh .txt" onclick="downloadSessionTxt(event, '${sid}')">
+        <button class="session-action-btn dl flex-center" title="${isEn ? 'Download chat' : 'Unduh obrolan'}" onclick="downloadSessionTxt(event, '${sid}')">
           <i class="ri-download-2-line"></i>
         </button>
-        <button class="session-action-btn del flex-center" title="Hapus" onclick="deleteSession(event, '${sid}')">
+        <button class="session-action-btn del flex-center" title="${isEn ? 'Delete chat' : 'Hapus obrolan'}" onclick="deleteSession(event, '${sid}')">
           <i class="ri-delete-bin-line"></i>
         </button>
       </div>
@@ -677,8 +869,8 @@ function initSpeechRecognition() {
       const input = document.getElementById('chat-input');
       if (input) {
         input.placeholder = isEn
-          ? "🎙️ Listening... Speak now nyaa~"
-          : "🎙️ Mendengarkan suara kamu... Bicaralah sekarang nyaa~";
+          ? "Listening... Speak now nyaa~"
+          : "Mendengarkan suara kamu... Bicaralah sekarang nyaa~";
       }
     };
 
@@ -714,10 +906,17 @@ function initSpeechRecognition() {
 function toggleSpeechRecognition() {
   const SpeechRec = window.SpeechRecognition || window.webkitSpeechRecognition;
   if (!SpeechRec) {
-    alert(isEn
-      ? "Your browser doesn't support Speech Recognition. Please try Google Chrome or Microsoft Edge!"
-      : "Browser kamu belum mendukung input suara. Silakan coba di Google Chrome atau Microsoft Edge ya!"
-    );
+    openAppModal({
+      icon: 'ri-mic-off-line',
+      iconType: 'info',
+      badge: isEn ? 'BROWSER COMPATIBILITY' : 'KOMPATIBILITAS BROWSER',
+      title: isEn ? 'Speech Recognition Unsupported' : 'Input Suara Belum Didukung',
+      desc: isEn
+        ? "Your current browser does not support the Web Speech API. For the best voice experience, please open this app in Google Chrome or Microsoft Edge."
+        : "Browser yang kamu gunakan saat ini belum mendukung Web Speech API. Untuk mencoba fitur input suara, silakan buka aplikasi ini di Google Chrome atau Microsoft Edge ya!",
+      showCallout: false,
+      confirmText: isEn ? 'Got it' : 'Mengerti'
+    });
     return;
   }
 
@@ -765,7 +964,7 @@ async function handleChatSubmit(e) {
 
 async function sendUserMessage(text) {
   if (remainingQuota <= 0) {
-    alert(isEn ? "Daily quota of 5 questions reached!" : "Batas 5 pertanyaan harian telah tercapai.");
+    showQuotaExceededModal();
     return;
   }
   if (isGenerating) return;
@@ -784,7 +983,7 @@ async function sendUserMessage(text) {
   appendMessageToDOM('user', text, nowTime);
 
   // Judul otomatis dari pesan pertama
-  if (sess.title === "Chat Baru" || sess.title === "New Chat") {
+  if (sess.title === "Chat Baru" || sess.title === "Obrolan Baru" || sess.title === "New Chat") {
     sess.title = text.length > 24 ? text.slice(0, 24) + '...' : text;
     document.getElementById('nav-session-title').textContent = sess.title;
     renderSessionsList();
@@ -814,7 +1013,8 @@ async function sendUserMessage(text) {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         message: text,
-        history: historyPayload
+        history: historyPayload,
+        lang: isEn ? 'en' : 'id'
       })
     });
 
@@ -850,3 +1050,19 @@ async function sendUserMessage(text) {
 
 // Mulai aplikasi
 window.onload = initApp;
+
+window.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape') closeAppModal();
+});
+
+// Cek berkala jika waktu reset 12 jam tercapai saat user tetap membuka halaman
+setInterval(() => {
+  if (quotaResetAt && Date.now() >= quotaResetAt) {
+    const wasExhausted = remainingQuota <= 0;
+    checkAndResetQuota();
+    updateQuotaUI();
+    if (wasExhausted) {
+      showToast(isEn ? "Your 5 chat questions quota has been reset!" : "Kuota 5 pertanyaan kamu telah direset kembali!");
+    }
+  }
+}, 20000);

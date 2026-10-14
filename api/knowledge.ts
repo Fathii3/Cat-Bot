@@ -9,7 +9,7 @@ Email Resmi: fathifadhil10@gmail.com
 WhatsApp Resmi: +6282241211466 (Template pesan: "Hi Fathi, I saw your portfolio and would like to discuss a project.")
 Website Portofolio: https://fathifadhil.me
 GitHub: https://github.com/Fathii3
-LinkedIn: https://www.linkedin.com/in/fathi-fadhil-45063320a
+LinkedIn: https://www.linkedin.com/in/fathi-fadhil
 Instagram: https://instagram.com/fathii._3
 Tautan CV Resmi:
 - Versi Indonesia: https://drive.google.com/file/d/1etPVxBQqUXPHOwhkKeasroTXMsaUXFy9/view?usp=drive_link
