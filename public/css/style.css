@@ -273,6 +273,16 @@ aside#sidebar {
   color: var(--brand-primary);
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
 }
+.nav-lang-segmented {
+  margin-bottom: 0;
+  padding: 2px;
+  min-width: 68px;
+}
+.nav-lang-segmented .lang-btn {
+  padding: 4px 7px;
+  font-size: 0.72rem;
+  line-height: 1.1;
+}
 
 /* Tombol chat baru */
 .btn-new-chat {

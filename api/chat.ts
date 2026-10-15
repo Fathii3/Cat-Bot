@@ -11,7 +11,7 @@ export interface ChatHistoryItem {
 
 // Fungsi pembangun instruksi sistem persona bot berdasarkan bahasa
 function buildSystemInstruction(lang: string = 'id'): string {
-  const isEn = lang === 'en';
+  const isEn = typeof lang === 'string' && lang.toLowerCase().trim().startsWith('en');
 
   if (isEn) {
     return `You are Fetty (Cat-Bot / Neko), Fathi Fadhil's official friendly and professional portfolio AI companion with charming cat expressions ('nyaa~', 'meow!', emoji 🐾/🐱).
@@ -29,6 +29,11 @@ Communication Guidelines:
 
 === OFFICIAL KNOWLEDGE BASE: FATHI FADHIL ===
 ${PORTFOLIO_KNOWLEDGE}
+
+=== CRITICAL FINAL INSTRUCTION: LANGUAGE ENFORCEMENT ===
+- Current Active Mode: ENGLISH ONLY.
+- Irrespective of the language used by the visitor (even if they ask in Indonesian, slang, or any other language), your answer must ALWAYS be 100% in natural English.
+- Maintain your feline persona ('nyaa~', 'meow!', emoji 🐾/🐱) in English at all times.
 `;
   }
 
@@ -47,6 +52,11 @@ Pedoman Komunikasi:
 
 === KNOWLEDGE BASE PORTOFOLIO FATHI FADHIL ===
 ${PORTFOLIO_KNOWLEDGE}
+
+=== PENGINGAT AKHIR: ATURAN BAHASA MUTLAK ===
+- Mode aktif saat ini adalah 100% BAHASA INDONESIA.
+- Apapun bahasa input dari pengguna (meskipun pengguna bertanya dalam Bahasa Inggris penuh), seluruh jawabanmu WAJIB 100% berbahasa Indonesia.
+- Pertahankan persona kucing lucu dan sopan ('nyaa~', 'meow!', emoji 🐾/🐱).
 `;
 }
 
@@ -124,8 +134,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
   try {
     // Validasi input
-    const { message, history, lang } = req.body || {};
-    const userLang = lang === 'en' ? 'en' : 'id';
+    const { message, history } = req.body || {};
+    const rawLang = req.body?.lang || req.query?.lang || '';
+    const isEn = typeof rawLang === 'string' && rawLang.toLowerCase().trim().startsWith('en');
+    const userLang = isEn ? 'en' : 'id';
     const systemInstruction = buildSystemInstruction(userLang);
 
     if (!message || typeof message !== 'string' || !message.trim()) {

@@ -10,6 +10,18 @@ function escapeHtml(str) {
 
 // State global
 let isEn = false;
+try {
+  const initParams = new URLSearchParams(window.location.search);
+  const qLang = initParams.get('lang');
+  if (qLang) {
+    isEn = qLang.toLowerCase().startsWith('en');
+  } else {
+    const saved = localStorage.getItem('fetty_lang');
+    if (saved) {
+      isEn = saved.toLowerCase().startsWith('en');
+    }
+  }
+} catch (_) {}
 let sessions = {};
 let activeSessionId = null;
 let isGenerating = false;
@@ -182,11 +194,39 @@ function initApp() {
     createNewChat(false);
   }
 
-  // Parameter bahasa URL
-  const params = new URLSearchParams(window.location.search);
-  if (params.get('lang') === 'en') {
-    isEn = true;
+  // Inisialisasi bahasa: 1. URL param (?lang=en/id), 2. localStorage, 3. sesi aktif, 4. default false (ID)
+  try {
+    const params = new URLSearchParams(window.location.search);
+    const urlLang = params.get('lang');
+    if (urlLang) {
+      isEn = urlLang.toLowerCase().startsWith('en');
+      localStorage.setItem('fetty_lang', isEn ? 'en' : 'id');
+    } else {
+      const savedLang = localStorage.getItem('fetty_lang');
+      if (savedLang) {
+        isEn = savedLang.toLowerCase().startsWith('en');
+      } else if (activeSessionId && sessions[activeSessionId]?.lang) {
+        isEn = sessions[activeSessionId].lang === 'en';
+      }
+    }
+  } catch (e) {
+    console.warn("Language init error:", e);
   }
+
+  // Sinkronisasi bahasa lintas frame / iframe embed (misal dari portfolio fathifadhil.me)
+  window.addEventListener('message', (event) => {
+    try {
+      if (event.data) {
+        const raw = event.data.lang || (event.data.type === 'SET_LANGUAGE' ? event.data.value : null);
+        if (typeof raw === 'string') {
+          const toEn = raw.toLowerCase().startsWith('en');
+          if (toEn !== isEn) {
+            setLanguage(toEn);
+          }
+        }
+      }
+    } catch (_) {}
+  });
 
   updateLanguageUI();
   renderSessionsList();
@@ -410,8 +450,17 @@ function recordQuestionUsage() {
   updateQuotaUI();
 }
 
-function setLanguage(toEn) {
-  isEn = toEn;
+function setLanguage(toEn, savePref = true) {
+  isEn = !!toEn;
+  if (savePref) {
+    try {
+      localStorage.setItem('fetty_lang', isEn ? 'en' : 'id');
+    } catch (_) { }
+  }
+  if (activeSessionId && sessions[activeSessionId]) {
+    sessions[activeSessionId].lang = isEn ? 'en' : 'id';
+    saveSessions();
+  }
   updateLanguageUI();
   renderHeroCards();
   renderQuickPills();
@@ -420,8 +469,12 @@ function setLanguage(toEn) {
 }
 
 function updateLanguageUI() {
-  document.getElementById('lang-en').classList.toggle('active', isEn);
-  document.getElementById('lang-id').classList.toggle('active', !isEn);
+  document.querySelectorAll('.lang-btn-en').forEach(el => el.classList.toggle('active', isEn));
+  document.querySelectorAll('.lang-btn-id').forEach(el => el.classList.toggle('active', !isEn));
+  const elEn = document.getElementById('lang-en');
+  if (elEn) elEn.classList.toggle('active', isEn);
+  const elId = document.getElementById('lang-id');
+  if (elId) elId.classList.toggle('active', !isEn);
   document.getElementById('txt-new-chat').textContent = isEn ? "New Chat" : "Obrolan Baru";
   document.getElementById('txt-history-title').textContent = isEn ? "Conversation Archive" : "Arsip Percakapan";
   const brandStatus = document.getElementById('txt-brand-status');
@@ -530,6 +583,7 @@ function createNewChat(switchNow = true) {
   sessions[id] = {
     id,
     title: defaultTitle,
+    lang: isEn ? 'en' : 'id',
     created: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
     messages: []
   };
@@ -582,6 +636,12 @@ function renderSessionsList() {
       if (!e.target.closest('.session-actions')) {
         activeSessionId = sid;
         saveSessions();
+        if (sessions[sid]?.lang) {
+          const sessIsEn = sessions[sid].lang === 'en';
+          if (sessIsEn !== isEn) {
+            setLanguage(sessIsEn, true);
+          }
+        }
         if (typeof window.closeMobileSidebar === 'function') {
           window.closeMobileSidebar();
         }
@@ -989,6 +1049,7 @@ async function sendUserMessage(text) {
     renderSessionsList();
   }
 
+  sess.lang = isEn ? 'en' : 'id';
   saveSessions();
   recordQuestionUsage();
 
