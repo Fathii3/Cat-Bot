@@ -21,7 +21,7 @@ try {
       isEn = saved.toLowerCase().startsWith('en');
     }
   }
-} catch (_) {}
+} catch (_) { }
 let sessions = {};
 let activeSessionId = null;
 let isGenerating = false;
@@ -233,7 +233,7 @@ function initApp() {
           }
         }
       }
-    } catch (_) {}
+    } catch (_) { }
   });
 
   updateLanguageUI();
@@ -311,7 +311,7 @@ function initApp() {
   }
 
   if (window.lucide) {
-    try { lucide.createIcons(); } catch (_) {}
+    try { lucide.createIcons(); } catch (_) { }
   }
 }
 
@@ -365,7 +365,7 @@ function showToast(msg, duration = 2800) {
   toast.className = 'toast-msg';
   toast.innerHTML = `<i data-lucide="info"></i><span>${escapeHtml(msg)}</span>`;
   container.appendChild(toast);
-  try { lucide.createIcons(); } catch (_) {}
+  try { lucide.createIcons(); } catch (_) { }
   setTimeout(() => {
     toast.style.opacity = '0';
     toast.style.transform = 'translateY(-10px)';
@@ -398,7 +398,7 @@ function openAppModal({
   if (iconEl) {
     const lucideName = icon.replace('ri-flashlight-line', 'zap').replace('ri-mic-off-line', 'mic-off').replace('ri-information-line', 'info');
     iconEl.setAttribute('data-lucide', lucideName);
-    try { lucide.createIcons(); } catch (_) {}
+    try { lucide.createIcons(); } catch (_) { }
   }
 
   const badgeEl = document.getElementById('modal-badge');
@@ -470,7 +470,7 @@ function updateQuotaUI() {
   if (badge) {
     const label = isEn ? 'Quota: ' : 'Sisa Kuota: ';
     badge.innerHTML = `<i data-lucide="zap"></i> <span id="nav-quota-val"><span class="quota-label">${label}</span><span class="quota-val">${qText}</span></span>`;
-    try { lucide.createIcons(); } catch (_) {}
+    try { lucide.createIcons(); } catch (_) { }
     if (quotaResetAt) {
       const nextReset = getNextResetTimeWib();
       badge.title = isEn
@@ -562,12 +562,6 @@ function updateLanguageUI() {
   if (brandStatus) {
     brandStatus.textContent = "Online";
   }
-  document.getElementById('hero-title').textContent = isEn
-    ? "Explore Fathi Fadhil's Engineering Portfolio"
-    : "Eksplorasi Rekayasa & Portofolio Fathi Fadhil";
-  document.getElementById('hero-subtitle').textContent = isEn
-    ? "Official technical AI companion. Analyze production architectures (FINARA, SKM Langkat, Dist), Flutter mobile solutions, full-stack systems, and end-to-end release workflows."
-    : "Asisten interaktif resmi seputar arsitektur sistem (FINARA, SKM Langkat, Dist), implementasi mobile Flutter, tech stack modern, dan alur rilis produksi.";
   document.getElementById('txt-thinking-label').textContent = isEn ? "Analyzing portfolio knowledge base..." : "Menganalisis basis pengetahuan portofolio...";
 
   const txtBtnDl = document.getElementById('txt-btn-download');
@@ -639,7 +633,7 @@ function renderHeroCards() {
     container.appendChild(div);
   });
   if (window.lucide) {
-    try { lucide.createIcons(); } catch (_) {}
+    try { lucide.createIcons(); } catch (_) { }
   }
 }
 
@@ -657,7 +651,7 @@ function renderQuickPills() {
     container.appendChild(btn);
   });
   if (window.lucide) {
-    try { lucide.createIcons(); } catch (_) {}
+    try { lucide.createIcons(); } catch (_) { }
   }
 }
 
@@ -739,7 +733,7 @@ function renderSessionsList() {
     };
     list.appendChild(item);
   });
-  try { lucide.createIcons(); } catch (_) {}
+  try { lucide.createIcons(); } catch (_) { }
   updateQuotaUI();
 }
 
@@ -766,12 +760,15 @@ function renderActiveSession() {
 
   const welcomeHero = document.getElementById('welcome-hero');
   const messagesList = document.getElementById('messages-list');
+  const topNavbar = document.getElementById('top-navbar');
   messagesList.innerHTML = '';
 
   if (sess.messages.length === 0) {
     welcomeHero.style.display = 'block';
+    if (topNavbar) topNavbar.classList.remove('scrolled');
   } else {
     welcomeHero.style.display = 'none';
+    if (topNavbar) topNavbar.classList.add('scrolled');
     sess.messages.forEach(m => appendMessageToDOM(m.role, m.content, m.time));
   }
   scrollToBottom();
@@ -909,7 +906,7 @@ function resetSlideState() {
   if (trackText) {
     trackText.style.opacity = '1';
     trackText.innerHTML = `<span id="txt-slide-label">${isEn ? 'Swipe right to delete chat' : 'Geser ke kanan untuk hapus chat'}</span> <i data-lucide="chevrons-right" class="slide-arrow-anim"></i>`;
-    try { lucide.createIcons(); } catch (_) {}
+    try { lucide.createIcons(); } catch (_) { }
   }
 }
 
@@ -954,7 +951,7 @@ function initSlideDeleteEvents() {
       fill.style.width = '100%';
       if (trackText) {
         trackText.style.opacity = '1';
-        trackText.innerHTML = `<span style="color:#ef4444; font-weight:700;">${isEn ? 'Chat Deleted!' : 'Chat Terhapus!'} 🗑️</span>`;
+        trackText.innerHTML = `<span style="color:#ef4444; font-weight:700;">${isEn ? 'Chat Deleted!' : 'Chat Terhapus!'}</span>`;
       }
 
       setTimeout(() => {
@@ -1135,7 +1132,7 @@ async function sendUserMessage(text) {
 
   // Judul otomatis dari pesan pertama
   if (sess.title === "Chat Baru" || sess.title === "Obrolan Baru" || sess.title === "New Chat") {
-    sess.title = text.length > 24 ? text.slice(0, 24) + '...' : text;
+    sess.title = text.length > 36 ? text.slice(0, 36).trim() + '...' : text;
     const navTitle = document.getElementById('nav-session-title');
     if (navTitle) navTitle.textContent = sess.title;
     renderSessionsList();
