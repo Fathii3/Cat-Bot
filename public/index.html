@@ -8,12 +8,10 @@
   <link rel="icon" type="image/svg+xml" href="/assets/fetty_avatar.svg" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link
-    href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Instrument+Sans:wght@400;500;600;700&display=swap"
-    rel="stylesheet" />
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/remixicon@4.2.0/fonts/remixicon.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Figtree:wght@700&family=Roboto:wght@400;500&display=swap" rel="stylesheet" />
+  <script src="https://cdn.jsdelivr.net/npm/lucide@0.460.0/dist/umd/lucide.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
-  <link rel="stylesheet" href="/css/style.css?v=1.2.0" />
+  <link rel="stylesheet" href="/css/style.css?v=1.4.0" />
 </head>
 
 <body>
@@ -37,13 +35,13 @@
           </div>
         </div>
 
-        <div class="lang-segmented sidebar-lang-segmented">
+        <div class="lang-segmented sidebar-lang-segmented" title="Ganti Bahasa / Switch Language">
           <button id="lang-en" class="lang-btn lang-btn-en" onclick="setLanguage(true)">English</button>
           <button id="lang-id" class="lang-btn lang-btn-id active" onclick="setLanguage(false)">Indonesia</button>
         </div>
 
         <button id="btn-new-chat" class="btn-new-chat" onclick="createNewChat()">
-          <i class="ri-add-line"></i>
+          <i data-lucide="plus"></i>
           <span id="txt-new-chat">Obrolan Baru</span>
         </button>
       </div>
@@ -65,10 +63,10 @@
 
     <main id="main-content">
       <header class="top-navbar" id="top-navbar">
-        <div class="nav-default-bar">
+        <div class="nav-default-bar" id="nav-default-bar">
           <div class="nav-left">
             <button id="btn-toggle-sidebar" class="btn-icon-sm" aria-label="Buka Menu" title="Menu Sidebar">
-              <i class="ri-menu-line"></i>
+              <i data-lucide="menu"></i>
             </button>
             <img src="/assets/fetty_avatar.svg" class="nav-avatar" alt="Fetty Avatar" />
             <div>
@@ -76,47 +74,42 @@
             </div>
           </div>
           <div class="nav-right">
-            <div class="lang-segmented nav-lang-segmented" title="Ganti Bahasa / Switch Language">
-              <button class="lang-btn lang-btn-en" onclick="setLanguage(true)">EN</button>
-              <button class="lang-btn lang-btn-id active" onclick="setLanguage(false)">ID</button>
-            </div>
-
             <button id="btn-download-chat" class="btn-action" title="Unduh obrolan ini (.txt)"
               onclick="downloadActiveSessionTxt()">
-              <i class="ri-download-2-line"></i>
+              <i data-lucide="download"></i>
               <span class="btn-action-label" id="txt-btn-download">Unduh Obrolan</span>
             </button>
 
             <button id="btn-trigger-delete" class="btn-action btn-danger" title="Hapus obrolan ini"
               onclick="toggleSlideDelete(true)">
-              <i class="ri-delete-bin-line"></i>
+              <i data-lucide="trash-2"></i>
               <span class="btn-action-label" id="txt-btn-delete">Hapus Obrolan</span>
             </button>
 
             <span id="nav-quota-badge" class="nav-quota-pill" title="Sisa kuota obrolan hari ini">
-              <i class="ri-flashlight-line"></i>
+              <i data-lucide="zap"></i>
               <span id="nav-quota-val"><span class="quota-label">Sisa Kuota: </span><span
                   class="quota-val">5/5</span></span>
             </span>
             <a href="https://fathifadhil.me" target="_blank" class="nav-link-portfolio">
               <span>fathifadhil.me</span>
-              <i class="ri-arrow-right-up-line"></i>
+              <i data-lucide="arrow-up-right"></i>
             </a>
           </div>
         </div>
 
         <div class="slide-delete-bar" id="slide-delete-bar">
           <button class="slide-cancel-btn btn-icon-sm" onclick="toggleSlideDelete(false)" title="Batal Hapus">
-            <i class="ri-close-line"></i>
+            <i data-lucide="x"></i>
           </button>
           <div class="slide-delete-track" id="slide-delete-track">
             <div class="slide-fill" id="slide-fill"></div>
             <div class="slide-track-text" id="slide-track-text">
               <span id="txt-slide-label">Geser ke kanan untuk hapus chat</span>
-              <i class="ri-arrow-right-double-line slide-arrow-anim"></i>
+              <i data-lucide="chevrons-right" class="slide-arrow-anim"></i>
             </div>
             <div class="slide-thumb btn-icon-sm btn-circle flex-center" id="slide-thumb" title="Geser ke kanan">
-              <i class="ri-delete-bin-line"></i>
+              <i data-lucide="trash-2"></i>
             </div>
           </div>
         </div>
@@ -126,24 +119,123 @@
         <div class="chat-inner">
 
           <div id="welcome-hero" class="welcome-hero">
-            <div class="hero-dossier-header">
-              <div class="hero-avatar flex-center">
-                <img src="/assets/fetty_avatar.svg" alt="Fetty" />
+            <!-- 1. Header besar (collapsing title) -->
+            <div class="collapsing-header" id="collapsing-header">
+              <h1 id="hero-title" class="collapsing-title">Fetty Assistant</h1>
+              <p id="hero-subtitle" class="collapsing-subtitle">
+                Eksplorasi Rekayasa & Portofolio Fathi Fadhil
+              </p>
+            </div>
+
+            <!-- 2. Hero (kartu besar) -->
+            <div class="hero-dossier-card">
+              <div class="hero-dossier-header">
+                <div class="hero-avatar flex-center">
+                  <img src="/assets/fetty_avatar.svg" alt="Fetty" />
+                </div>
+                <div class="hero-dossier-meta">
+                  <div class="hero-dossier-tag">
+                    <span class="status-dot"></span>
+                    <span id="txt-brand-status">Online</span>
+                  </div>
+                  <span class="hero-dossier-sub">Fathi Fadhil · Software Engineer</span>
+                </div>
               </div>
-              <div class="hero-dossier-meta">
-                <span class="hero-dossier-tag">
-                  <i class="ri-terminal-box-line"></i> Online
-                </span>
-                <span class="hero-dossier-sub">Fathi Fadhil · Software Engineer</span>
+              <p class="hero-dossier-desc">
+                Asisten interaktif resmi seputar arsitektur sistem (FINARA, SKM Langkat, Dist), implementasi mobile Flutter, tech stack modern, dan alur rilis produksi.
+              </p>
+              <div class="quick-pills-row" id="quick-pills-container"></div>
+            </div>
+
+            <!-- 3. Kartu fitur -->
+            <div class="section-block" id="section-features">
+              <div class="section-heading-wrap">
+                <h2 class="section-title">Fitur & Topik Unggulan</h2>
+                <p class="section-desc">Telusuri arsitektur sistem dan implementasi teknologi</p>
+              </div>
+              <div class="hero-cards-grid" id="hero-cards-container"></div>
+            </div>
+
+            <!-- 4. Daftar gaya pengaturan (FAQ) -->
+            <div class="section-block" id="section-faq">
+              <div class="section-heading-wrap">
+                <h2 class="section-title">Pertanyaan Umum (FAQ)</h2>
+                <p class="section-desc">Pilihan topik cepat untuk langsung mulai diskusi</p>
+              </div>
+              <div class="settings-group-card" id="settings-group-card">
+                <div class="settings-row" onclick="sendUserMessage('Boleh ceritakan arsitektur dan solusi teknis pada proyek-proyek unggulan Fathi Fadhil?')">
+                  <div class="settings-icon-circle flex-center">
+                    <i data-lucide="layers"></i>
+                  </div>
+                  <div class="settings-content">
+                    <div class="settings-row-title">FINARA POS & Arsitektur Offline-First</div>
+                    <div class="settings-row-desc">Sinkronisasi lokal SQLite, integrasi Gemini AI, dan pelaporan</div>
+                  </div>
+                  <div class="settings-action">
+                    <i data-lucide="chevron-right" class="settings-chevron"></i>
+                  </div>
+                </div>
+                <div class="settings-divider"></div>
+
+                <div class="settings-row" onclick="sendUserMessage('Teknologi, bahasa pemrograman, dan framework apa saja yang dikuasai oleh Fathi Fadhil?')">
+                  <div class="settings-icon-circle flex-center">
+                    <i data-lucide="cpu"></i>
+                  </div>
+                  <div class="settings-content">
+                    <div class="settings-row-title">Tech Stack & Spesialisasi Sistem</div>
+                    <div class="settings-row-desc">Flutter, Dart, Next.js 14, TypeScript, Supabase, Cloud Rilis</div>
+                  </div>
+                  <div class="settings-action">
+                    <i data-lucide="chevron-right" class="settings-chevron"></i>
+                  </div>
+                </div>
+                <div class="settings-divider"></div>
+
+                <div class="settings-row" onclick="sendUserMessage('Apa saja sertifikasi profesional, lisensi, dan pengalaman kerja yang dimiliki oleh Fathi Fadhil?')">
+                  <div class="settings-icon-circle flex-center">
+                    <i data-lucide="award"></i>
+                  </div>
+                  <div class="settings-content">
+                    <div class="settings-row-title">Kredensial & Pengalaman Resmi</div>
+                    <div class="settings-row-desc">Google Developer Groups, Huawei HCIA-AI, IBM SkillsBuild</div>
+                  </div>
+                  <div class="settings-action">
+                    <i data-lucide="chevron-right" class="settings-chevron"></i>
+                  </div>
+                </div>
+                <div class="settings-divider"></div>
+
+                <div class="settings-row" onclick="showQuotaExceededModal()">
+                  <div class="settings-icon-circle flex-center">
+                    <i data-lucide="shield-check"></i>
+                  </div>
+                  <div class="settings-content">
+                    <div class="settings-row-title">Batas Kuota Sesi & Privasi</div>
+                    <div class="settings-row-desc">5 percakapan per siklus dengan reset otomatis 12 jam (WIB)</div>
+                  </div>
+                  <div class="settings-action">
+                    <span class="settings-badge" id="settings-quota-badge">5/5 Kuota</span>
+                    <i data-lucide="chevron-right" class="settings-chevron"></i>
+                  </div>
+                </div>
               </div>
             </div>
-            <h1 id="hero-title" class="hero-title">Eksplorasi Rekayasa & Portofolio Fathi Fadhil</h1>
-            <p id="hero-subtitle" class="hero-subtitle">
-              Asisten interaktif resmi seputar arsitektur sistem (FINARA, SKM Langkat, Dist), implementasi mobile
-              Flutter, tech stack modern, dan alur rilis produksi.
-            </p>
-            <div class="hero-cards-grid" id="hero-cards-container"></div>
-            <div class="quick-pills-row" id="quick-pills-container"></div>
+
+            <!-- 5. CTA (Tombol utama pill selebar penuh) -->
+            <div class="landing-cta-wrap">
+              <button type="button" class="btn-primary-pill" id="btn-landing-cta" onclick="focusChatInput()">
+                <i data-lucide="message-square-plus"></i>
+                <span id="txt-cta-main">Mulai Tanya Fetty Assistant</span>
+              </button>
+            </div>
+
+            <!-- 6. Footer ringkas -->
+            <footer class="landing-compact-footer">
+              <p id="chat-footer-caption">
+                Didukung Google Gemini · Menjawab seputar proyek & portofolio <a href="https://fathifadhil.me"
+                  target="_blank">Fathi Fadhil ↗</a>
+              </p>
+            </footer>
           </div>
 
           <div id="messages-list" class="chat-messages-list"></div>
@@ -152,7 +244,7 @@
             <img src="/assets/fetty_avatar.svg" class="message-avatar" alt="Fetty" />
             <div class="skeleton-box">
               <div class="thinking-telemetry">
-                <i class="ri-loader-4-line ri-spin thinking-spinner"></i>
+                <i data-lucide="loader-2" class="thinking-spinner"></i>
                 <span id="txt-thinking-label">Menganalisis basis pengetahuan portofolio...</span>
               </div>
               <div class="skeleton skeleton-bar w-full"></div>
@@ -171,16 +263,12 @@
               placeholder="Tanyakan studi kasus FINARA, tech stack, atau alur rilis..." autocomplete="off" />
             <button id="btn-mic" type="button" class="btn-icon-md btn-circle flex-center btn-mic"
               title="Bicara dengan Mikrofon" onclick="toggleSpeechRecognition()">
-              <i class="ri-mic-line"></i>
+              <i data-lucide="mic"></i>
             </button>
             <button id="btn-submit" type="submit" class="btn-icon-md btn-circle flex-center btn-send" title="Kirim">
-              <i class="ri-arrow-up-line"></i>
+              <i data-lucide="arrow-up"></i>
             </button>
           </form>
-          <div class="chat-footer-caption" id="chat-footer-caption">
-            Didukung Google Gemini · Menjawab seputar proyek & pengalaman <a href="https://fathifadhil.me"
-              target="_blank">Fathi Fadhil ↗</a>
-          </div>
         </div>
       </div>
     </main>
@@ -188,10 +276,10 @@
   <div id="app-modal" class="app-modal-overlay" style="display: none;" onclick="closeAppModal(event)">
     <div class="app-modal-card" onclick="event.stopPropagation()">
       <button class="app-modal-close" onclick="closeAppModal()" aria-label="Tutup" title="Tutup">
-        <i class="ri-close-line"></i>
+        <i data-lucide="x"></i>
       </button>
       <div class="app-modal-icon-wrapper warning" id="modal-icon-box">
-        <i class="ri-flashlight-line" id="modal-icon"></i>
+        <i data-lucide="zap" id="modal-icon"></i>
       </div>
       <div class="app-modal-header">
         <span class="app-modal-badge" id="modal-badge">BATAS LIMIT TERCAPAI</span>
@@ -202,17 +290,17 @@
       </p>
       <div class="app-modal-callout" id="modal-callout">
         <div class="callout-header">
-          <i class="ri-chat-smile-2-line"></i>
+          <i data-lucide="message-square"></i>
           <span>Ingin diskusi proyek atau freelance langsung?</span>
         </div>
         <p>Hubungi Fathi langsung via WhatsApp resmi atau telusuri portofolio lengkapnya.</p>
         <div class="callout-links">
           <a href="https://wa.me/6282241211466?text=Hi%20Fathi,%20saya%20tertarik%20berdiskusi%20tentang%20proyek"
             target="_blank" class="modal-link-btn primary">
-            <i class="ri-whatsapp-line"></i> WhatsApp
+            <i data-lucide="phone"></i> WhatsApp
           </a>
           <a href="https://fathifadhil.me" target="_blank" class="modal-link-btn secondary">
-            <i class="ri-arrow-right-up-line"></i> fathifadhil.me
+            <i data-lucide="arrow-up-right"></i> fathifadhil.me
           </a>
         </div>
       </div>

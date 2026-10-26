@@ -34,6 +34,7 @@ const HERO_CARDS = {
     {
       tag: "FEATURED SYSTEMS",
       icon: "ri-code-box-line",
+      lucideIcon: "code-2",
       title: "Production Projects",
       desc: "FINARA (Offline-First POS & Gemini AI), SKM Langkat (Public Survey), Dist & SiBanjir.",
       prompt: "What are Fathi's most notable engineering projects and what architectures did they use?"
@@ -41,6 +42,7 @@ const HERO_CARDS = {
     {
       tag: "CORE ARCHITECTURE",
       icon: "ri-stack-line",
+      lucideIcon: "layers",
       title: "Tech Stack & Mastery",
       desc: "Flutter, Dart, Next.js 14, TypeScript, Laravel 13, Firebase, Supabase, Google Gemini API.",
       prompt: "What technical stack, languages, and frameworks does Fathi specialize in?"
@@ -48,6 +50,7 @@ const HERO_CARDS = {
     {
       tag: "METHODOLOGY",
       icon: "ri-git-branch-line",
+      lucideIcon: "git-branch",
       title: "Idea to Product Workflow",
       desc: "Discovery (Needs) → Strategy (Architecture) → Build (Code) → Testing → Zero-Downtime Release.",
       prompt: "How does Fathi's engineering workflow translate an idea into a production-ready product?"
@@ -55,6 +58,7 @@ const HERO_CARDS = {
     {
       tag: "CREDENTIALS",
       icon: "ri-award-line",
+      lucideIcon: "award",
       title: "Certifications & Experience",
       desc: "Google Developer Groups #JuaraVibeCoding, Huawei HCIA-AI, IBM SkillsBuild, Diskominfo PKL.",
       prompt: "What professional certifications, licenses, and industry experience does Fathi possess?"
@@ -64,6 +68,7 @@ const HERO_CARDS = {
     {
       tag: "SISTEM PRODUKSI",
       icon: "ri-code-box-line",
+      lucideIcon: "code-2",
       title: "Proyek & Aplikasi Unggulan",
       desc: "FINARA (Offline-First POS & Gemini AI), SKM Langkat (Survei IKM Diskominfo), Dist & SiBanjir.",
       prompt: "Boleh ceritakan arsitektur dan solusi teknis pada proyek-proyek unggulan Fathi Fadhil?"
@@ -71,6 +76,7 @@ const HERO_CARDS = {
     {
       tag: "ARSITEKTUR & STACK",
       icon: "ri-stack-line",
+      lucideIcon: "layers",
       title: "Tech Stack & Spesialisasi",
       desc: "Flutter, Dart, Next.js 14, TypeScript, Laravel 13, Firebase, Supabase, Google Gemini API.",
       prompt: "Teknologi, bahasa pemrograman, dan framework apa saja yang dikuasai oleh Fathi Fadhil?"
@@ -78,6 +84,7 @@ const HERO_CARDS = {
     {
       tag: "METODOLOGI DEV",
       icon: "ri-git-branch-line",
+      lucideIcon: "git-branch",
       title: "Alur Kerja: Dari Ide ke Rilis",
       desc: "Discovery (Kebutuhan) → Strategy (Arsitektur) → Build (Coding) → Testing → Rilis Produksi.",
       prompt: "Bagaimana alur kerja Fathi dari merancang ide hingga menjadi produk siap rilis?"
@@ -85,6 +92,7 @@ const HERO_CARDS = {
     {
       tag: "KREDENSIAL & RIWAYAT",
       icon: "ri-award-line",
+      lucideIcon: "award",
       title: "Sertifikasi & Pengalaman",
       desc: "Google Developer Groups #JuaraVibeCoding, Huawei HCIA-AI, IBM SkillsBuild, PKL Diskominfo.",
       prompt: "Apa saja sertifikasi profesional, lisensi, dan pengalaman kerja yang dimiliki oleh Fathi Fadhil?"
@@ -259,17 +267,19 @@ function initApp() {
     overlay.classList.add('active');
   };
 
-  toggleBtn.addEventListener('click', () => {
-    if (window.innerWidth <= 768) {
-      if (sidebar.classList.contains('open')) {
-        window.closeMobileSidebar();
+  if (toggleBtn) {
+    toggleBtn.addEventListener('click', () => {
+      if (window.innerWidth <= 768) {
+        if (sidebar.classList.contains('open')) {
+          window.closeMobileSidebar();
+        } else {
+          window.openMobileSidebar();
+        }
       } else {
-        window.openMobileSidebar();
+        sidebar.classList.toggle('collapsed');
       }
-    } else {
-      sidebar.classList.toggle('collapsed');
-    }
-  });
+    });
+  }
 
   overlay.addEventListener('click', window.closeMobileSidebar);
 
@@ -280,7 +290,72 @@ function initApp() {
       sidebar.classList.remove('open');
     }
   });
+
+  // Listener scroll untuk efek collapsing header Samsung One UI
+  const scrollContainer = document.getElementById('chat-scroll-container');
+  const topNavbar = document.getElementById('top-navbar');
+  if (scrollContainer && topNavbar) {
+    scrollContainer.addEventListener('scroll', () => {
+      const hero = document.getElementById('welcome-hero');
+      const isHeroVisible = hero && hero.style.display !== 'none';
+      if (isHeroVisible) {
+        if (scrollContainer.scrollTop > 60) {
+          topNavbar.classList.add('scrolled');
+        } else {
+          topNavbar.classList.remove('scrolled');
+        }
+      } else {
+        topNavbar.classList.add('scrolled');
+      }
+    }, { passive: true });
+  }
+
+  if (window.lucide) {
+    try { lucide.createIcons(); } catch (_) {}
+  }
 }
+
+// Fungsi bantu navigasi & aksi Samsung One UI
+window.focusChatInput = function () {
+  const input = document.getElementById('chat-input');
+  if (input) {
+    input.focus();
+    input.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  }
+};
+
+window.navToSection = function (section) {
+  document.querySelectorAll('.bottom-nav-item').forEach(b => b.classList.remove('active'));
+  const activeBtn = document.getElementById(`bnav-${section}`);
+  if (activeBtn) activeBtn.classList.add('active');
+
+  if (section === 'home') {
+    const hero = document.getElementById('welcome-hero');
+    if (hero && hero.style.display !== 'none') {
+      document.getElementById('chat-scroll-container')?.scrollTo({ top: 0, behavior: 'smooth' });
+    } else {
+      createNewChat();
+    }
+  } else if (section === 'chat') {
+    window.focusChatInput();
+  } else if (section === 'topics') {
+    const hero = document.getElementById('welcome-hero');
+    if (hero && hero.style.display === 'none') {
+      createNewChat();
+    }
+    setTimeout(() => {
+      const target = document.getElementById('section-features') || document.getElementById('hero-cards-container');
+      if (target) target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }, 50);
+  } else if (section === 'history') {
+    if (window.openMobileSidebar) {
+      window.openMobileSidebar();
+    } else {
+      const sidebar = document.getElementById('sidebar');
+      if (sidebar) sidebar.classList.toggle('collapsed');
+    }
+  }
+};
 
 // Notifikasi toast
 function showToast(msg, duration = 2800) {
@@ -288,8 +363,9 @@ function showToast(msg, duration = 2800) {
   if (!container) return;
   const toast = document.createElement('div');
   toast.className = 'toast-msg';
-  toast.innerHTML = `<i class="ri-information-line"></i><span>${escapeHtml(msg)}</span>`;
+  toast.innerHTML = `<i data-lucide="info"></i><span>${escapeHtml(msg)}</span>`;
   container.appendChild(toast);
+  try { lucide.createIcons(); } catch (_) {}
   setTimeout(() => {
     toast.style.opacity = '0';
     toast.style.transform = 'translateY(-10px)';
@@ -300,7 +376,7 @@ function showToast(msg, duration = 2800) {
 
 // Modal popup modern pengganti alert
 function openAppModal({
-  icon = 'ri-flashlight-line',
+  icon = 'zap',
   iconType = 'default',
   badge = 'NOTIFIKASI',
   title = 'Informasi',
@@ -319,7 +395,11 @@ function openAppModal({
     iconBox.className = 'app-modal-icon-wrapper ' + (iconType !== 'default' ? iconType : '');
   }
   const iconEl = document.getElementById('modal-icon');
-  if (iconEl) iconEl.className = icon;
+  if (iconEl) {
+    const lucideName = icon.replace('ri-flashlight-line', 'zap').replace('ri-mic-off-line', 'mic-off').replace('ri-information-line', 'info');
+    iconEl.setAttribute('data-lucide', lucideName);
+    try { lucide.createIcons(); } catch (_) {}
+  }
 
   const badgeEl = document.getElementById('modal-badge');
   if (badgeEl) badgeEl.textContent = badge;
@@ -366,7 +446,7 @@ function closeAppModal(e) {
 function showQuotaExceededModal() {
   const nextReset = getNextResetTimeWib();
   openAppModal({
-    icon: 'ri-flashlight-line',
+    icon: 'zap',
     iconType: 'warning',
     badge: isEn ? 'QUOTA LIMIT REACHED' : 'BATAS LIMIT TERCAPAI',
     title: isEn ? 'Limit Reached (5 Questions)' : 'Batas 5 Pertanyaan Tercapai',
@@ -389,7 +469,8 @@ function updateQuotaUI() {
   const badge = document.getElementById('nav-quota-badge');
   if (badge) {
     const label = isEn ? 'Quota: ' : 'Sisa Kuota: ';
-    badge.innerHTML = `<i class="ri-flashlight-line"></i> <span id="nav-quota-val"><span class="quota-label">${label}</span><span class="quota-val">${qText}</span></span>`;
+    badge.innerHTML = `<i data-lucide="zap"></i> <span id="nav-quota-val"><span class="quota-label">${label}</span><span class="quota-val">${qText}</span></span>`;
+    try { lucide.createIcons(); } catch (_) {}
     if (quotaResetAt) {
       const nextReset = getNextResetTimeWib();
       badge.title = isEn
@@ -539,23 +620,27 @@ function renderHeroCards() {
   cards.forEach(c => {
     const div = document.createElement('div');
     div.className = 'hero-card';
+    const lIcon = c.lucideIcon || 'sparkles';
     div.innerHTML = `
       <div class="hero-card-header">
         <span class="hero-card-tag">${escapeHtml(c.tag)}</span>
         <div class="hero-card-icon flex-center">
-          <i class="${escapeHtml(c.icon)}"></i>
+          <i data-lucide="${escapeHtml(lIcon)}"></i>
         </div>
       </div>
       <div class="hero-card-title">${escapeHtml(c.title)}</div>
       <div class="hero-card-desc">${escapeHtml(c.desc)}</div>
       <div class="hero-card-cta">
         <span>${isEn ? 'Explore topic' : 'Mulai tanya'}</span>
-        <i class="ri-arrow-right-up-line"></i>
+        <i data-lucide="arrow-up-right"></i>
       </div>
     `;
     div.onclick = () => sendUserMessage(c.prompt);
     container.appendChild(div);
   });
+  if (window.lucide) {
+    try { lucide.createIcons(); } catch (_) {}
+  }
 }
 
 function renderQuickPills() {
@@ -567,10 +652,13 @@ function renderQuickPills() {
     const btn = document.createElement('button');
     btn.className = 'quick-pill';
     btn.type = 'button';
-    btn.innerHTML = `<i class="ri-sparkling-line"></i> <span>${escapeHtml(p.label)}</span>`;
+    btn.innerHTML = `<i data-lucide="sparkles"></i> <span>${escapeHtml(p.label)}</span>`;
     btn.onclick = () => sendUserMessage(p.prompt);
     container.appendChild(btn);
   });
+  if (window.lucide) {
+    try { lucide.createIcons(); } catch (_) {}
+  }
 }
 
 // Kelola sesi chat
@@ -625,10 +713,10 @@ function renderSessionsList() {
       <span class="session-item-title" title="${escapedTitle}">${escapedTitle}</span>
       <div class="session-actions">
         <button class="session-action-btn dl flex-center" title="${isEn ? 'Download chat' : 'Unduh obrolan'}" onclick="downloadSessionTxt(event, '${sid}')">
-          <i class="ri-download-2-line"></i>
+          <i data-lucide="download"></i>
         </button>
         <button class="session-action-btn del flex-center" title="${isEn ? 'Delete chat' : 'Hapus obrolan'}" onclick="deleteSession(event, '${sid}')">
-          <i class="ri-delete-bin-line"></i>
+          <i data-lucide="trash-2"></i>
         </button>
       </div>
     `;
@@ -651,6 +739,7 @@ function renderSessionsList() {
     };
     list.appendChild(item);
   });
+  try { lucide.createIcons(); } catch (_) {}
   updateQuotaUI();
 }
 
@@ -672,7 +761,8 @@ function deleteSession(e, sid) {
 function renderActiveSession() {
   const sess = sessions[activeSessionId];
   if (!sess) return;
-  document.getElementById('nav-session-title').textContent = sess.title;
+  const navTitle = document.getElementById('nav-session-title');
+  if (navTitle) navTitle.textContent = sess.title;
 
   const welcomeHero = document.getElementById('welcome-hero');
   const messagesList = document.getElementById('messages-list');
@@ -818,7 +908,8 @@ function resetSlideState() {
   isDraggingSlide = false;
   if (trackText) {
     trackText.style.opacity = '1';
-    trackText.innerHTML = `<span id="txt-slide-label">${isEn ? 'Swipe right to delete chat' : 'Geser ke kanan untuk hapus chat'}</span> <i class="ri-arrow-right-double-line slide-arrow-anim"></i>`;
+    trackText.innerHTML = `<span id="txt-slide-label">${isEn ? 'Swipe right to delete chat' : 'Geser ke kanan untuk hapus chat'}</span> <i data-lucide="chevrons-right" class="slide-arrow-anim"></i>`;
+    try { lucide.createIcons(); } catch (_) {}
   }
 }
 
@@ -967,7 +1058,7 @@ function toggleSpeechRecognition() {
   const SpeechRec = window.SpeechRecognition || window.webkitSpeechRecognition;
   if (!SpeechRec) {
     openAppModal({
-      icon: 'ri-mic-off-line',
+      icon: 'mic-off',
       iconType: 'info',
       badge: isEn ? 'BROWSER COMPATIBILITY' : 'KOMPATIBILITAS BROWSER',
       title: isEn ? 'Speech Recognition Unsupported' : 'Input Suara Belum Didukung',
@@ -1045,7 +1136,8 @@ async function sendUserMessage(text) {
   // Judul otomatis dari pesan pertama
   if (sess.title === "Chat Baru" || sess.title === "Obrolan Baru" || sess.title === "New Chat") {
     sess.title = text.length > 24 ? text.slice(0, 24) + '...' : text;
-    document.getElementById('nav-session-title').textContent = sess.title;
+    const navTitle = document.getElementById('nav-session-title');
+    if (navTitle) navTitle.textContent = sess.title;
     renderSessionsList();
   }
 
